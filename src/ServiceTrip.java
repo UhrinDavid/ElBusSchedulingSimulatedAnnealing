@@ -6,15 +6,16 @@ import java.util.Scanner;
 public class ServiceTrip {
 	
 	private int id;
-	private int linka;
-	private int spoj;
-	private int start;
-	private int koniec;
-	private int trvanie;
-	private double dlzka;
-	private double spotreba;
-	private int stanicaZaciatok;
-	private int stanicaKoniec;
+	private final int linka;
+	private final int spoj;
+	private final int start;
+	private final int koniec;
+	private final int trvanie;
+	private final double dlzka;
+	private final double spotreba;
+	private final int stanicaZaciatok;
+	private final int stanicaKoniec;
+
 	
 	public ServiceTrip(int id, int linka, int spoj, int start, int koniec, int trvanie, double dlzka, double spotreba,
 			int stanicaZaciatok, int stanicaKoniec) {
@@ -70,8 +71,8 @@ public class ServiceTrip {
 		return stanicaKoniec;
 	}
 	
-	public static ArrayList<ServiceTrip> createServiceTrips(String fileName) throws FileNotFoundException {
-		ArrayList<ServiceTrip> serviceTrips = new ArrayList<ServiceTrip>();
+	public static ArrayList<ServiceTrip> loadServiceTripsFromFile(String fileName) throws FileNotFoundException {
+		ArrayList<ServiceTrip> serviceTrips = new ArrayList<>();
 		Scanner scanner = new Scanner(new File(fileName));
 		scanner.nextLine();
 	    while (scanner.hasNextLine()) {
@@ -95,6 +96,4 @@ public class ServiceTrip {
 	    }
 	    return serviceTrips;
 	}
-	
-	
 }

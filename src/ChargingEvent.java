@@ -10,7 +10,7 @@ public class ChargingEvent {
 	private int startTime;
 	private double chargingSpeed;
 	
-	private ChargingEvent(int indexCharger, int indexChargingEvent, int startTime, double chargingSpeed) {
+	public ChargingEvent(int indexCharger, int indexChargingEvent, int startTime, double chargingSpeed) {
 		this.indexCharger = indexCharger;
 		this.indexChargingEvent = indexChargingEvent;
 		this.startTime = startTime;
@@ -34,7 +34,7 @@ public class ChargingEvent {
 	}
 	
 	public static ArrayList<ChargingEvent> createChargingEvents(String fileName) throws FileNotFoundException {
-		ArrayList<ChargingEvent> chargingEvents = new ArrayList<ChargingEvent>();
+		ArrayList<ChargingEvent> chargingEvents = new ArrayList<>();
 		Scanner scanner = new Scanner(new File(fileName));
 		scanner.nextLine();
 	    while (scanner.hasNextLine()) {
@@ -51,6 +51,4 @@ public class ChargingEvent {
 	    }
 	    return chargingEvents;
 	}
-	
-
 }
