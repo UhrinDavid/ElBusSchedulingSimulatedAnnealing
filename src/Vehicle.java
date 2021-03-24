@@ -2,47 +2,42 @@ import java.util.ArrayList;
 
 public class Vehicle {
     private ArrayList<ServiceTrip> serviceTrips;
-    private ArrayList<ChargingEvent> chargingEvents;
-    private double currentBatteryCapacity;
-    static double maxBatteryCapacity = 140;
-    static double minBatteryCapacity = 0;
+    final static double maxBatteryCapacity = 140;
+    final static double minBatteryCapacity = 0;
 
-    public Vehicle() {
+    public Vehicle(ServiceTrip depoStart, ServiceTrip depoEnd) {
         serviceTrips = new ArrayList<>();
-        chargingEvents = new ArrayList<>();
-        this.currentBatteryCapacity =maxBatteryCapacity;
+        this.serviceTrips.add(depoStart);
+        this.serviceTrips.add(depoEnd);
     }
+
+    public Vehicle(Vehicle vehicle) {
+        serviceTrips = new ArrayList<>();
+        for (ServiceTrip trip : vehicle.serviceTrips
+             ) {
+            serviceTrips.add(new ServiceTrip(trip));
+        }
+    }
+
 
     public void addServiceTrip (ServiceTrip serviceTrip) {
-        serviceTrips.add(serviceTrip);
-    }
-
-    public void addChargingEvent (ChargingEvent chargingEvent) {
-        chargingEvents.add(chargingEvent);
+        boolean isAdded = false;
+        int index = 1;
+        while (!isAdded) {
+            if (serviceTrip.getStart() < serviceTrips.get(index).getStart()) {
+                isAdded = true;
+                serviceTrips.add(index,serviceTrip);
+            }
+            index++;
+        }
     }
 
     public void removeServiceTrip(ServiceTrip serviceTrip) {
         serviceTrips.remove(serviceTrip);
     }
 
-    public void removeChargingEvent(ChargingEvent chargingEvent) {
-        chargingEvents.remove(chargingEvent);
-    }
-
     public ArrayList<ServiceTrip> getServiceTrips() {
         return serviceTrips;
-    }
-
-    public ArrayList<ChargingEvent> getChargingEvents() {
-        return chargingEvents;
-    }
-
-    public double getCurrentBatteryCapacity() {
-        return currentBatteryCapacity;
-    }
-
-    public void modifyBatteryCapacityBy(double delta) {
-        this.currentBatteryCapacity += delta;
     }
 
     public String toString() {
@@ -50,9 +45,10 @@ public class Vehicle {
         for ( ServiceTrip serviceTrip : serviceTrips ) {
             vehicleString.append("Service trip: ").append(serviceTrip.getId()).append("\n");
         }
-        for (ChargingEvent chargingEvent : chargingEvents ) {
-            vehicleString.append("Charging event: ").append(chargingEvent.getIndexChargingEvent()).append("\n");
-        }
         return vehicleString.toString();
+    }
+
+    public boolean hasServiceTrips() {
+        return serviceTrips.size() > 2;
     }
 }

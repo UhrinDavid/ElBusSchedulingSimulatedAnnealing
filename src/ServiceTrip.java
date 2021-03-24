@@ -15,10 +15,11 @@ public class ServiceTrip {
 	private final double spotreba;
 	private final int stanicaZaciatok;
 	private final int stanicaKoniec;
+	private ArrayList<ChargingEvent> followingChargingEvents;
 
 	
 	public ServiceTrip(int id, int linka, int spoj, int start, int koniec, int trvanie, double dlzka, double spotreba,
-			int stanicaZaciatok, int stanicaKoniec) {
+					   int stanicaZaciatok, int stanicaKoniec) {
 		this.id = id;
 		this.linka = linka;
 		this.spoj = spoj;
@@ -29,6 +30,25 @@ public class ServiceTrip {
 		this.spotreba = spotreba;
 		this.stanicaZaciatok = stanicaZaciatok;
 		this.stanicaKoniec = stanicaKoniec;
+		this.followingChargingEvents = new ArrayList<>();
+	}
+
+	public ServiceTrip(ServiceTrip trip) {
+		this.id = trip.id;
+		this.linka = trip.linka;
+		this.spoj = trip.spoj;
+		this.start = trip.start;
+		this.koniec = trip.koniec;
+		this.trvanie = trip.trvanie;
+		this.dlzka = trip.dlzka;
+		this.spotreba = trip.spotreba;
+		this.stanicaZaciatok = trip.stanicaZaciatok;
+		this.stanicaKoniec = trip.stanicaKoniec;
+		this.followingChargingEvents = new ArrayList<>();
+		for (ChargingEvent event : trip.followingChargingEvents
+			 ) {
+			followingChargingEvents.add(new ChargingEvent(event));
+		}
 	}
 
 	public int getId() {
@@ -70,6 +90,18 @@ public class ServiceTrip {
 	public int getStanicaKoniec() {
 		return stanicaKoniec;
 	}
+
+	public ArrayList<ChargingEvent> getFollowingChargingEvents() {
+		return followingChargingEvents;
+	}
+
+	public void addFollowingChargingEvent(ChargingEvent event) {
+		followingChargingEvents.add(event);
+	}
+
+	public void removeFollowingChargingEvent(ChargingEvent event) {
+		followingChargingEvents.remove(event);
+	}
 	
 	public static ArrayList<ServiceTrip> loadServiceTripsFromFile(String fileName) throws FileNotFoundException {
 		ArrayList<ServiceTrip> serviceTrips = new ArrayList<>();
@@ -94,6 +126,7 @@ public class ServiceTrip {
 	            								 par6, par7, par8, par9, par10));
 	        }
 	    }
+	    scanner.close();
 	    return serviceTrips;
 	}
 }
