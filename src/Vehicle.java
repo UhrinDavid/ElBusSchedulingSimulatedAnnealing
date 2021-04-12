@@ -2,21 +2,20 @@ import java.util.ArrayList;
 
 public class Vehicle {
     private ArrayList<ServiceTrip> serviceTrips;
+    private ArrayList<ChargingEvent> chargingEvents;
     final static double maxBatteryCapacity = 140;
     final static double minBatteryCapacity = 0;
 
     public Vehicle(ServiceTrip depoStart, ServiceTrip depoEnd) {
         serviceTrips = new ArrayList<>();
+        chargingEvents = new ArrayList<>();
         this.serviceTrips.add(depoStart);
         this.serviceTrips.add(depoEnd);
     }
 
     public Vehicle(Vehicle vehicle) {
-        serviceTrips = new ArrayList<>();
-        for (ServiceTrip trip : vehicle.serviceTrips
-             ) {
-            serviceTrips.add(new ServiceTrip(trip));
-        }
+        serviceTrips = new ArrayList<>(vehicle.serviceTrips);
+        chargingEvents = new ArrayList<>(vehicle.chargingEvents);
     }
 
 
@@ -39,6 +38,8 @@ public class Vehicle {
     public ArrayList<ServiceTrip> getServiceTrips() {
         return serviceTrips;
     }
+
+    public ArrayList<ChargingEvent> getChargingEvents() {return chargingEvents;}
 
     public String toString() {
         StringBuilder vehicleString = new StringBuilder();

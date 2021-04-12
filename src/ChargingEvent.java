@@ -12,11 +12,14 @@ public class ChargingEvent {
 
 	private boolean isTaken = false;
 
-	public ChargingEvent(int indexCharger, int indexChargingEvent, int startTime, double chargingSpeed) {
+	private final int matrixIndex;
+
+	public ChargingEvent(int indexCharger, int indexChargingEvent, int startTime, double chargingSpeed, int matrixIndex) {
 		this.indexCharger = indexCharger;
 		this.indexChargingEvent = indexChargingEvent;
 		this.startTime = startTime;
 		this.chargingSpeed = chargingSpeed;
+		this.matrixIndex = matrixIndex;
 	}
 
 	public ChargingEvent(ChargingEvent event) {
@@ -25,6 +28,7 @@ public class ChargingEvent {
 		this.startTime = event.startTime;
 		this.chargingSpeed = event.chargingSpeed;
 		this.isTaken = event.isTaken;
+		this.matrixIndex = event.matrixIndex;
 	}
 	
 	public int getIndexCharger() {
@@ -51,6 +55,8 @@ public class ChargingEvent {
 		isTaken = taken;
 	}
 
+	public int getMatrixIndex() { return  matrixIndex; }
+
 	public static ArrayList<ChargingEvent> createChargingEvents(String fileName) throws FileNotFoundException {
 		ArrayList<ChargingEvent> chargingEvents = new ArrayList<>();
 		Scanner scanner = new Scanner(new File(fileName));
@@ -64,7 +70,7 @@ public class ChargingEvent {
 	            int par3 = Integer.parseInt(rowScanner.next());
 	            double par4 = Double.parseDouble(rowScanner.next());  
 	            
-	            chargingEvents.add(new ChargingEvent(par1, par2, par3, par4));
+	            chargingEvents.add(new ChargingEvent(par1, par2, par3, par4, chargingEvents.size()));
 	        }
 	    }
 	    scanner.close();

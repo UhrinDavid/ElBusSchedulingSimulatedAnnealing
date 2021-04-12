@@ -13,7 +13,7 @@ public class Solution {
         vehicles = new ArrayList<>();
         for (Vehicle vehicle :
                 solution.vehicles) {
-            vehicles.add(new Vehicle(vehicle));
+            vehicles.add(vehicle);
         }
     }
 

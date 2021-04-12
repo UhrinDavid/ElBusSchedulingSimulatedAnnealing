@@ -15,11 +15,12 @@ public class ServiceTrip {
 	private final double spotreba;
 	private final int stanicaZaciatok;
 	private final int stanicaKoniec;
-	private ArrayList<ChargingEvent> followingChargingEvents;
+
+	private final int matrixIndex;
 
 	
 	public ServiceTrip(int id, int linka, int spoj, int start, int koniec, int trvanie, double dlzka, double spotreba,
-					   int stanicaZaciatok, int stanicaKoniec) {
+					   int stanicaZaciatok, int stanicaKoniec, int matrixIndex) {
 		this.id = id;
 		this.linka = linka;
 		this.spoj = spoj;
@@ -30,7 +31,7 @@ public class ServiceTrip {
 		this.spotreba = spotreba;
 		this.stanicaZaciatok = stanicaZaciatok;
 		this.stanicaKoniec = stanicaKoniec;
-		this.followingChargingEvents = new ArrayList<>();
+		this.matrixIndex = matrixIndex;
 	}
 
 	public ServiceTrip(ServiceTrip trip) {
@@ -44,11 +45,7 @@ public class ServiceTrip {
 		this.spotreba = trip.spotreba;
 		this.stanicaZaciatok = trip.stanicaZaciatok;
 		this.stanicaKoniec = trip.stanicaKoniec;
-		this.followingChargingEvents = new ArrayList<>();
-		for (ChargingEvent event : trip.followingChargingEvents
-			 ) {
-			followingChargingEvents.add(new ChargingEvent(event));
-		}
+		matrixIndex = trip.matrixIndex;
 	}
 
 	public int getId() {
@@ -91,17 +88,7 @@ public class ServiceTrip {
 		return stanicaKoniec;
 	}
 
-	public ArrayList<ChargingEvent> getFollowingChargingEvents() {
-		return followingChargingEvents;
-	}
-
-	public void addFollowingChargingEvent(ChargingEvent event) {
-		followingChargingEvents.add(event);
-	}
-
-	public void removeFollowingChargingEvent(ChargingEvent event) {
-		followingChargingEvents.remove(event);
-	}
+	public int getMatrixIndex() {return matrixIndex; }
 	
 	public static ArrayList<ServiceTrip> loadServiceTripsFromFile(String fileName) throws FileNotFoundException {
 		ArrayList<ServiceTrip> serviceTrips = new ArrayList<>();
@@ -123,7 +110,7 @@ public class ServiceTrip {
 	            int par10 = Integer.parseInt(rowScanner.next());
 	            
 	            serviceTrips.add(new ServiceTrip(par1, par2, par3, par4, par5,
-	            								 par6, par7, par8, par9, par10));
+	            								 par6, par7, par8, par9, par10, serviceTrips.size()));
 	        }
 	    }
 	    scanner.close();
