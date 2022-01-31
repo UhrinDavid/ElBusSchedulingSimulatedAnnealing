@@ -6,15 +6,15 @@ import java.io.FileNotFoundException;
 
 public class GUI extends JFrame implements ActionListener {
 
-    JPanel startPanel;
+    private JPanel startPanel;
 
-    JTextField tFDSPrefix;
-    JTextField tFStartingTemperature;
-    JTextField tFTemperatureBeta;
-    JTextField tFIterationsAtTemp;
-    JButton startButton;
+    private JTextField tFDSPrefix;
+    private JTextField tFStartingTemperature;
+    private JTextField tFTemperatureBeta;
+    private JTextField tFIterationsAtTemp;
+    private JButton startButton;
 
-    SimulatedAnnealing sAAlgorithm = null;
+    private SimulatedAnnealing saAlgorithm = null;
 
     public GUI() {
         super("Electric bus scheduling - Simulated Annealing.");
@@ -38,7 +38,7 @@ public class GUI extends JFrame implements ActionListener {
         this.tFTemperatureBeta.setMaximumSize(new Dimension(200, 30));
         this.tFTemperatureBeta.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-        this.tFIterationsAtTemp = new JTextField("1000");
+        this.tFIterationsAtTemp = new JTextField("100");
         this.tFIterationsAtTemp.setMaximumSize(new Dimension(200, 30));
         this.tFIterationsAtTemp.setAlignmentX(Component.CENTER_ALIGNMENT);
 
@@ -80,10 +80,12 @@ public class GUI extends JFrame implements ActionListener {
         int maxQ = Integer.parseInt(tFIterationsAtTemp.getText());
 
         try {
-            sAAlgorithm = new SimulatedAnnealing(dataSet, maxT, tBeta, maxQ);
+            saAlgorithm = new SimulatedAnnealing(dataSet, maxT, tBeta, maxQ);
+            System.out.println("initial: \n" + saAlgorithm);
+            saAlgorithm.runSimulatedAnnealing();
+            System.out.println("final: \n" + saAlgorithm);
         } catch (FileNotFoundException exception) {
             JOptionPane.showMessageDialog(null, exception.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
-
 }

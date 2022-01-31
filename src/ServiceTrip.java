@@ -5,46 +5,46 @@ import java.util.Scanner;
 
 public class ServiceTrip {
 	
-	private int id;
-	private final int linka;
-	private final int spoj;
+	private final int id;
+	private final int line;
+	private final int trip;
 	private final int start;
-	private final int koniec;
-	private final int trvanie;
-	private final double dlzka;
-	private final double spotreba;
-	private final int stanicaZaciatok;
-	private final int stanicaKoniec;
+	private final int end;
+	private final int duration;
+	private final double distance;
+	private final double consumption;
+	private final int startStation;
+	private final int endStation;
 
 	private final int matrixIndex;
 
 	
-	public ServiceTrip(int id, int linka, int spoj, int start, int koniec, int trvanie, double dlzka, double spotreba,
-					   int stanicaZaciatok, int stanicaKoniec, int matrixIndex) {
+	public ServiceTrip(int id, int line, int trip, int start, int end, int duration, double distance, double consumption,
+					   int startStation, int endStation, int matrixIndex) {
 		this.id = id;
-		this.linka = linka;
-		this.spoj = spoj;
+		this.line = line;
+		this.trip = trip;
 		this.start = start;
-		this.koniec = koniec;
-		this.trvanie = trvanie;
-		this.dlzka = dlzka;
-		this.spotreba = spotreba;
-		this.stanicaZaciatok = stanicaZaciatok;
-		this.stanicaKoniec = stanicaKoniec;
+		this.end = end;
+		this.duration = duration;
+		this.distance = distance;
+		this.consumption = consumption;
+		this.startStation = startStation;
+		this.endStation = endStation;
 		this.matrixIndex = matrixIndex;
 	}
 
 	public ServiceTrip(ServiceTrip trip) {
 		this.id = trip.id;
-		this.linka = trip.linka;
-		this.spoj = trip.spoj;
+		this.line = trip.line;
+		this.trip = trip.trip;
 		this.start = trip.start;
-		this.koniec = trip.koniec;
-		this.trvanie = trip.trvanie;
-		this.dlzka = trip.dlzka;
-		this.spotreba = trip.spotreba;
-		this.stanicaZaciatok = trip.stanicaZaciatok;
-		this.stanicaKoniec = trip.stanicaKoniec;
+		this.end = trip.end;
+		this.duration = trip.duration;
+		this.distance = trip.distance;
+		this.consumption = trip.consumption;
+		this.startStation = trip.startStation;
+		this.endStation = trip.endStation;
 		matrixIndex = trip.matrixIndex;
 	}
 
@@ -52,40 +52,40 @@ public class ServiceTrip {
 		return id;
 	}
 
-	public int getLinka() {
-		return linka;
+	public int getLine() {
+		return line;
 	}
 
-	public int getSpoj() {
-		return spoj;
+	public int getTrip() {
+		return trip;
 	}
 
 	public int getStart() {
 		return start;
 	}
 
-	public int getKoniec() {
-		return koniec;
+	public int getEnd() {
+		return end;
 	}
 
-	public int getTrvanie() {
-		return trvanie;
+	public int getDuration() {
+		return duration;
 	}
 
-	public double getDlzka() {
-		return dlzka;
+	public double getDistance() {
+		return distance;
 	}
 
-	public double getSpotreba() {
-		return spotreba;
+	public double getConsumption() {
+		return consumption;
 	}
 
-	public int getStanicaZaciatok() {
-		return stanicaZaciatok;
+	public int getStartStation() {
+		return startStation;
 	}
 
-	public int getStanicaKoniec() {
-		return stanicaKoniec;
+	public int getEndStation() {
+		return endStation;
 	}
 
 	public int getMatrixIndex() {return matrixIndex; }

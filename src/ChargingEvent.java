@@ -4,13 +4,12 @@ import java.util.ArrayList;
 import java.util.Scanner;
 
 public class ChargingEvent {
-	
 	private final int indexCharger;
 	private final int indexChargingEvent;
 	private final int startTime;
 	private final double chargingSpeed;
 
-	private boolean isTaken = false;
+	private boolean isReserved = false;
 
 	private final int matrixIndex;
 
@@ -27,7 +26,7 @@ public class ChargingEvent {
 		this.indexChargingEvent = event.indexChargingEvent;
 		this.startTime = event.startTime;
 		this.chargingSpeed = event.chargingSpeed;
-		this.isTaken = event.isTaken;
+		this.isReserved = event.isReserved;
 		this.matrixIndex = event.matrixIndex;
 	}
 	
@@ -47,12 +46,12 @@ public class ChargingEvent {
 		return chargingSpeed;
 	}
 
-	public boolean isTaken() {
-		return isTaken;
+	public boolean getIsReserved() {
+		return isReserved;
 	}
 
-	public void setTaken(boolean taken) {
-		isTaken = taken;
+	public void setIsReserved(boolean isReserved) {
+		this.isReserved = isReserved;
 	}
 
 	public int getMatrixIndex() { return  matrixIndex; }
