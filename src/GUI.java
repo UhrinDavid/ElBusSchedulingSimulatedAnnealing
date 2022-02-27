@@ -26,7 +26,7 @@ public class GUI extends JFrame implements ActionListener {
         this.startPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
         this.startPanel.setAlignmentY(Component.CENTER_ALIGNMENT);
 
-        this.tFDSPrefix = new JTextField("Pom");
+        this.tFDSPrefix = new JTextField("26");
         this.tFDSPrefix.setMaximumSize(new Dimension(200, 30));
         this.tFDSPrefix.setAlignmentX(Component.CENTER_ALIGNMENT);
 
@@ -81,7 +81,6 @@ public class GUI extends JFrame implements ActionListener {
 
         try {
             saAlgorithm = new SimulatedAnnealing(dataSet, maxT, tBeta, maxQ);
-            System.out.println("initial: \n" + saAlgorithm);
             saAlgorithm.runSimulatedAnnealing();
             System.out.println("final: \n" + saAlgorithm);
         } catch (FileNotFoundException exception) {
