@@ -79,12 +79,13 @@ public class GUI extends JFrame implements ActionListener {
         double tBeta = Double.parseDouble(tFTemperatureBeta.getText());
         int maxQ = Integer.parseInt(tFIterationsAtTemp.getText());
 
-        try {
-            saAlgorithm = new SimulatedAnnealing(dataSet, maxT, tBeta, maxQ);
-            saAlgorithm.runSimulatedAnnealing();
-            System.out.println("final: \n" + saAlgorithm);
-        } catch (FileNotFoundException exception) {
-            JOptionPane.showMessageDialog(null, exception.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
-        }
+//        try {
+////            saAlgorithm = new SimulatedAnnealing(dataSet, maxT, tBeta, maxQ);
+////            saAlgorithm.runSimulatedAnnealing();
+////            System.out.println("final: \n" + saAlgorithm);
+//
+//        } catch (FileNotFoundException exception) {
+//            JOptionPane.showMessageDialog(null, exception.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+//        }
     }
 }

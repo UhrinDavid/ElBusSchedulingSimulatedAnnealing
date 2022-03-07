@@ -1,25 +1,21 @@
 import java.util.ArrayList;
 
-public class Vehicle {
+public class STsGroup {
     private ArrayList<ServiceTrip> serviceTrips;
     private ArrayList<ChargingEvent> assignedChargingEvents;
     final static double maxBatteryCapacity = 140;
     final static double minBatteryCapacity = 0;
 
-    public Vehicle(ServiceTrip depoStart, ServiceTrip depoEnd) {
+    public STsGroup(ServiceTrip depoStart, ServiceTrip depoEnd) {
         serviceTrips = new ArrayList<>();
         assignedChargingEvents = new ArrayList<>();
         this.serviceTrips.add(depoStart);
         this.serviceTrips.add(depoEnd);
     }
 
-    public Vehicle(Vehicle vehicle) {
-        serviceTrips = new ArrayList<>(vehicle.serviceTrips);
-        assignedChargingEvents = new ArrayList<>();
-        for (ChargingEvent event : vehicle.assignedChargingEvents
-             ) {
-            assignedChargingEvents.add(new ChargingEvent(event));
-        }
+    public STsGroup(STsGroup STsGroup) {
+        serviceTrips = new ArrayList<>(STsGroup.serviceTrips);
+        assignedChargingEvents = new ArrayList<>(STsGroup.assignedChargingEvents);
     }
 
 
@@ -72,13 +68,13 @@ public class Vehicle {
 
     public double checkForBatteryDeficiency(Edge[][] matrixSTtoST) {
         // check if there is enough battery capacity, if not, try to insert charging events
-        double deficiencyAll = Vehicle.maxBatteryCapacity;
+        double deficiencyAll = STsGroup.maxBatteryCapacity;
         int serviceTripIndex = 1;
         // create deficiency structure
         while (serviceTripIndex < serviceTrips.size()) {
             ServiceTrip trip = serviceTrips.get(serviceTripIndex);
             ServiceTrip tripPrevious = serviceTrips.get(serviceTripIndex - 1);
-            deficiencyAll -= matrixSTtoST[tripPrevious.getMatrixIndex()][trip.getMatrixIndex()].getBatteryConsumption()
+            deficiencyAll -= matrixSTtoST[tripPrevious.getIndex()][trip.getIndex()].getBatteryConsumption()
                     + trip.getConsumption();
             serviceTripIndex++;
         }
@@ -87,13 +83,13 @@ public class Vehicle {
 
     public boolean tryChargeBetweenSTs(double deficiencyAll,  Edge[][] matrixSTtoST,  Edge[][] matrixSTtoCE, Edge[][] matrixCEtoST, ArrayList<ChargingEvent> chargingEvents) {
         double deficiencyLeft = deficiencyAll;
-        double currentBatteryState = Vehicle.maxBatteryCapacity;
+        double currentBatteryState = STsGroup.maxBatteryCapacity;
         int tripIndexCorrection = 1;
         ArrayList<ChargingEvent> usedEvents = new ArrayList<>();
         while (tripIndexCorrection < serviceTrips.size() && deficiencyLeft < 0) {
             ServiceTrip trip = serviceTrips.get(tripIndexCorrection);
             ServiceTrip tripPrevious = serviceTrips.get(tripIndexCorrection - 1);
-            final Edge edgeSTtoST = matrixSTtoST[tripPrevious.getMatrixIndex()][trip.getMatrixIndex()];
+            final Edge edgeSTtoST = matrixSTtoST[tripPrevious.getIndex()][trip.getIndex()];
             final double tripConsumption = edgeSTtoST.getBatteryConsumption()
                     + trip.getConsumption();
             // find suitable CE
@@ -103,8 +99,8 @@ public class Vehicle {
             while (indexCE < chargingEvents.size() && !isFoundSuitableCharger
             ) {
                 ChargingEvent cE = chargingEvents.get(indexCE);
-                final Edge edgeSTtoCE = matrixSTtoCE[tripPrevious.getMatrixIndex()][cE.getIndexCharger()];
-                final Edge edgeCEtoST = matrixCEtoST[cE.getIndexCharger()][trip.getMatrixIndex()];
+                final Edge edgeSTtoCE = matrixSTtoCE[tripPrevious.getIndex()][cE.getIndexCharger()];
+                final Edge edgeCEtoST = matrixCEtoST[cE.getIndexCharger()][trip.getIndex()];
                 // we have time to make trip to charger and back to next ST, also enough battery to get to charger, event is not reserved
                 if (!cE.getIsReserved() && edgeSTtoCE != null
                         && edgeCEtoST != null) {
@@ -128,13 +124,13 @@ public class Vehicle {
                             maxChargingTimeOverall += maxChargingTimeOnEvent;
                             final double actualMaxChargingTimeBetweenSTs = Math.min(maxTimeBetweenSTs, maxChargingTimeOverall);
                             final double maxCharge = actualMaxChargingTimeBetweenSTs * chargingEvents.get(indexCE).getChargingSpeed();
-                            potentialBatteryState = Math.min(currentBatteryState - consumptionDuringEvent + maxCharge, Vehicle.maxBatteryCapacity);
-                            if (isNextEventOnCharger && potentialBatteryState < Vehicle.maxBatteryCapacity) {
+                            potentialBatteryState = Math.min(currentBatteryState - consumptionDuringEvent + maxCharge, STsGroup.maxBatteryCapacity);
+                            if (isNextEventOnCharger && potentialBatteryState < STsGroup.maxBatteryCapacity) {
                                 shouldCheckNextEventOnCharger = true;
                             } else {
                                 shouldCheckNextEventOnCharger = false;
                             }
-                        } while (shouldCheckNextEventOnCharger && matrixCEtoST[chargingEvents.get(++indexCE).getIndexCharger()][trip.getMatrixIndex()] != null
+                        } while (shouldCheckNextEventOnCharger && matrixCEtoST[chargingEvents.get(++indexCE).getIndexCharger()][trip.getIndex()] != null
                                 && !chargingEvents.get(indexCE).getIsReserved());
                         // check if we charge more than minimum required for next trip / more than is consumed to and from event
                         if (potentialBatteryState - trip.getConsumption() > 0
@@ -146,7 +142,6 @@ public class Vehicle {
                             for (int i = indexFirstInsertableCE; i <= indexCE; i++) {
                                 usedEvents.add(chargingEvents.get(i));
                                 chargingEvents.get(i).setIsReserved(true);
-                                this.assignedChargingEvents.add(chargingEvents.get(i));
                             }
                             isFoundSuitableCharger = true;
                         }
@@ -157,7 +152,6 @@ public class Vehicle {
             if (!isFoundSuitableCharger) {
                 currentBatteryState -= tripConsumption;
                 if (currentBatteryState < 0) {
-                    this.assignedChargingEvents.clear();
                     for (ChargingEvent usedEvent : usedEvents
                     ) {
                         usedEvent.setIsReserved(false);
@@ -169,20 +163,30 @@ public class Vehicle {
         }
 
         if (deficiencyLeft < 0) {
-            this.assignedChargingEvents.clear();
             for (ChargingEvent usedEvent : usedEvents
             ) {
                 usedEvent.setIsReserved(false);
             }
             return false;
         }
+        if (usedEvents.size() > 2) {
+            System.out.println("lot of ces: "+usedEvents.size());
+            if (usedEvents.get(0).getIndexCharger() != usedEvents.get(usedEvents.size()-1).getIndexCharger()) {
+
+                System.out.println("cross charger");
+            }
+            for (ChargingEvent evv: usedEvents
+            ) {
+                System.out.println(evv.getIndexCharger() + " :: " + evv.getMatrixIndex());
+            }
+        }
+        this.assignedChargingEvents = new ArrayList<>(usedEvents);
         return true;
     }
 
     public ArrayList<ServiceTrip> tryInsertTrips(ArrayList<ServiceTrip> removedTripsPa, Edge[][] matrixSTtoST, Edge[][] matrixSTtoCE, Edge[][] matrixCEtoST, ArrayList<ChargingEvent> chargingEvents) {
         // backup of current state of removedTrips from vehicle we try to eliminate from the solution - in case we need to revert iteration
         ArrayList<ServiceTrip> removedTrips = new ArrayList<>(removedTripsPa);
-
 
         // try to find a time window between already existing trips in vehicle,
         // we don't take capacity deficiency into account at first, only if ST can be inserted respecting time restrictions
@@ -211,42 +215,40 @@ public class Vehicle {
                 // check if we can insert removedTrips[indexRemovedTrips] between current and next trip respecting time restrictions
                 // if start of removed is greater or equal than end of current + time from ST to ST
                 // && if start of next is greater or equal than end of removed + time from ST to ST
-                if (matrixSTtoST[currentTrip.getMatrixIndex()][removedTrip.getMatrixIndex()] != null
-                        && matrixSTtoST[removedTrip.getMatrixIndex()][nextTrip.getMatrixIndex()] != null) {
+                if (matrixSTtoST[currentTrip.getIndex()][removedTrip.getIndex()] != null
+                        && matrixSTtoST[removedTrip.getIndex()][nextTrip.getIndex()] != null) {
                     // removedTrip is added between current and next, battery deficiency has to be checked after
                     // adding all removedTrips to current vehicle that fit timewise, remove removedTrip from removedTrips
-                    removedTrips.remove(removedTrip);
-                    serviceTrips.add(++indexVehicleTrips, removedTrip);
-                    if (!isNewAdded) {
-                        isNewAdded = true;
+                    // release CEs of vehicle where we try to add removed ST
+                    ArrayList<ChargingEvent> cEsBackup = new ArrayList<>(assignedChargingEvents);
+                    for (ChargingEvent event : this.assignedChargingEvents) {
+                        event.setIsReserved(false);
                     }
-                    continue;
+                    this.assignedChargingEvents.clear();
+//                    System.out.println("adding");
+//                    System.out.println(removedTrip);
+                    serviceTrips.add(++indexVehicleTrips, removedTrip);
+                    // check if there is enough battery capacity, if not, try to insert charging events
+                    double deficiencyAll = checkForBatteryDeficiency(matrixSTtoST);
+
+                    // we need to insert charging events
+                    if (deficiencyAll < 0) {
+                        if (tryChargeBetweenSTs(deficiencyAll, matrixSTtoST, matrixSTtoCE, matrixCEtoST, chargingEvents)) {
+                            removedTrips.remove(removedTrip);
+                        } else {
+                            serviceTrips.remove(indexVehicleTrips--);
+                            assignedChargingEvents = new ArrayList<>(cEsBackup);
+                            for (ChargingEvent event : this.assignedChargingEvents) {
+                                event.setIsReserved(true);
+                            }
+                        }
+                    } else {
+                        removedTrips.remove(removedTrip);
+                    }
                 }
             }
             indexVehicleTrips++;
         }
-
-        // check if any of removedTrips were added to current vehicle
-        if (isNewAdded) {
-            // release CEs of vehicle where we try to add removed ST's
-            for (ChargingEvent event : this.assignedChargingEvents) {
-                event.setIsReserved(false);
-            }
-            this.assignedChargingEvents.clear();
-
-            // check if there is enough battery capacity, if not, try to insert charging events
-            double deficiencyAll = checkForBatteryDeficiency(matrixSTtoST);
-
-            // we need to insert charging events
-            if (deficiencyAll < 0) {
-                if (tryChargeBetweenSTs(deficiencyAll, matrixSTtoST, matrixSTtoCE, matrixCEtoST, chargingEvents)) {
-                    return removedTrips;
-                } else {
-                    return removedTripsPa;
-                }
-            }
-            return removedTrips;
-        }
-        return removedTripsPa;
+        return removedTrips;
     }
 }

@@ -5,14 +5,15 @@ import java.util.*;
 public class SimulatedAnnealing {
 
     private ArrayList<ChargingEvent> chargingEvents;
-    private ArrayList<ServiceTrip> serviceTrips;
-    private String dataSet;
     private Solution solution;
     private Edge[][] matrixSTtoST;
     private Edge[][] matrixSTtoCE;
     private Edge[][] matrixCEtoST;
     // TODO: use random as singleton class
     private Random random;
+    private boolean shouldReheat;
+    private int maxComputingTimeSeconds;
+    private long totalTime;
 
     //starting temperature
     private double maxT;
@@ -21,25 +22,30 @@ public class SimulatedAnnealing {
     //max iterations at given temperature
     private int maxQ;
 
-    public SimulatedAnnealing(String dataSet, double maxT, double tBeta, int maxQ) throws FileNotFoundException {
-        this.dataSet = dataSet;
-        chargingEvents = ChargingEvent.createChargingEvents("./src/Datasets/" + dataSet + "_chargEvents.csv");
-        serviceTrips = ServiceTrip.loadServiceTripsFromFile("./src/Datasets/" + dataSet + "_Trips.csv");
+    public SimulatedAnnealing(boolean shouldReheat, int maxComputingTimeSeconds, double maxT, double tBeta, int maxQ, String fileTrips, String fileChargers,
+                              String fileEnergySTToST, String fileEnergySTToCE, String fileEnergyCEToST, String fileTimeSTToST,
+                              String fileTimeSTToCE, String fileTimeCEToST) throws FileNotFoundException {
+        shouldReheat = shouldReheat;
+        maxComputingTimeSeconds = maxComputingTimeSeconds;
+        totalTime = 0;
+        ArrayList<ServiceTrip> serviceTrips;
+        chargingEvents = ChargingEvent.createChargingEvents(fileChargers);
+        serviceTrips = ServiceTrip.loadServiceTripsFromFile(fileTrips);
 
         solution = new Solution();
 
         this.random = new Random();
 
         for (int tripIndex = 1; tripIndex < serviceTrips.size() - 1; tripIndex++) {
-            Vehicle vehicle = new Vehicle(serviceTrips.get(0), serviceTrips.get(serviceTrips.size() - 1));
-            vehicle.addServiceTrip(serviceTrips.get(tripIndex));
-            solution.addVehicle(vehicle);
+            STsGroup STsGroup = new STsGroup(serviceTrips.get(0), serviceTrips.get(serviceTrips.size() - 1));
+            STsGroup.addServiceTrip(serviceTrips.get(tripIndex));
+            solution.addVehicle(STsGroup);
         }
 
 
         // ServiceTrip to ServiceTrip matrix
-        Scanner scannerTij = new Scanner(new File("./src/Datasets/" + dataSet + "_MatrixTij.csv"));
-        Scanner scannerCij = new Scanner(new File("./src/Datasets/" + dataSet + "_MatrixCij.csv"));
+        Scanner scannerTij = new Scanner(new File(fileTimeSTToST));
+        Scanner scannerCij = new Scanner(new File(fileEnergySTToST));
         String lineTij = scannerTij.nextLine();
         String lineCij = scannerCij.nextLine();
         int matrixNumberOfLines = Integer.parseInt(lineTij);
@@ -58,7 +64,7 @@ public class SimulatedAnnealing {
             rowScannerCij.useDelimiter(";");
             for (int j = 0; j < matrixNumberOfRows; j++) {
                 int timeDistance = Integer.parseInt(rowScannerTij.next());
-                double batteryConsumption = Double.parseDouble(rowScannerCij.next());
+                double batteryConsumption = Double.parseDouble(rowScannerCij.next().replace("\"", ""));
                 // check if such edge is possible (timewise), if not insert null
                 if (serviceTrips.get(i).getEnd() + timeDistance > serviceTrips.get(j).getStart()) {
                     matrixSTtoST[i][j] = null;
@@ -74,8 +80,8 @@ public class SimulatedAnnealing {
 
         //  TODO: if event is on same charger as previous and has same start time, don't create edge
         // ServiceTrip to ChargingEvent matrix
-        Scanner scannerTir = new Scanner(new File("./src/Datasets/" + dataSet + "_MatrixTir.csv"));
-        Scanner scannerCir = new Scanner(new File("./src/Datasets/" + dataSet + "_MatrixCir.csv"));
+        Scanner scannerTir = new Scanner(new File(fileTimeSTToCE));
+        Scanner scannerCir = new Scanner(new File(fileEnergySTToCE));
         String lineTir = scannerTir.nextLine();
         String lineCir = scannerCir.nextLine();
         matrixNumberOfLines = Integer.parseInt(lineTir);
@@ -108,8 +114,8 @@ public class SimulatedAnnealing {
         scannerCir.close();
 
         // ServiceTrip to ChargingEvent matrix
-        Scanner scannerTrj = new Scanner(new File("./src/Datasets/" + dataSet + "_MatrixTrj.csv"));
-        Scanner scannerCrj = new Scanner(new File("./src/Datasets/" + dataSet + "_MatrixCrj.csv"));
+        Scanner scannerTrj = new Scanner(new File(fileTimeCEToST));
+        Scanner scannerCrj = new Scanner(new File(fileEnergyCEToST));
         String lineTrj = scannerTrj.nextLine();
         String lineCrj = scannerCrj.nextLine();
         matrixNumberOfLines = Integer.parseInt(lineTrj);
@@ -147,45 +153,62 @@ public class SimulatedAnnealing {
     }
 
     public void runSimulatedAnnealing() {
-        long startTime = System.currentTimeMillis();
-        // currently 10 min
-        long endAfterTime = 10 * 60 * 1000 + startTime;
+            long startTime = System.currentTimeMillis();
+            // currently 10 min
+            long endAfterTime = maxComputingTimeSeconds * 1000 + startTime;
 
-        Solution solutionCurrent = solution;
-        boolean isFoundBetterSolution;
-        double currentTemperature = maxT;
-        do {
-            isFoundBetterSolution = false;
-            for (int q = 0; q < maxQ; q++) {
-                Solution nextSolution = solutionCurrent.findNext(matrixSTtoST, matrixSTtoCE, matrixCEtoST, chargingEvents);
-                System.out.println("new solution: " + nextSolution.getVehicles().size());
+            Solution solutionCurrent = solution;
+            boolean isFoundBetterSolutionOnTemperature;
+            boolean isFoundBetterSinceLastReheating = false;
+            boolean shouldContinueSA;
+            double currentTemperature = maxT;
+            do {
+                shouldContinueSA = false;
+                isFoundBetterSolutionOnTemperature = false;
+                for (int q = 0; q < maxQ; q++) {
+                    Solution nextSolution = solutionCurrent.findNext(matrixSTtoST, matrixSTtoCE, matrixCEtoST, chargingEvents);
+//                    System.out.println("new solution: " + nextSolution.getVehicles().size());
 //                System.out.println("new solution: " + nextSolution);
-                if (nextSolution == null) {
-                    return;
-                }
-                if (nextSolution.getVehicles().size() <= solutionCurrent.getVehicles().size()) {
-                    if (!isFoundBetterSolution && nextSolution.getVehicles().size() < solutionCurrent.getVehicles().size()) {
-                        isFoundBetterSolution = true;
+                    if (nextSolution == null) {
+                        return;
                     }
-                    solutionCurrent = nextSolution;
-                    solution = nextSolution;
-                } else {
-                    double pAcceptNext = Math.exp(
-                            -((nextSolution.getVehicles().size() - solutionCurrent.getVehicles().size())
-                                    / currentTemperature)
-                    );
-                    double generatedValue = random.nextDouble();
-                    if (generatedValue <= pAcceptNext) {
-                        System.out.println("accepted worse: " + nextSolution.getVehicles().size());
+                    if (nextSolution.getVehicles().size() <= solutionCurrent.getVehicles().size()) {
+                        if (!isFoundBetterSolutionOnTemperature && nextSolution.getVehicles().size() < solutionCurrent.getVehicles().size()) {
+                            isFoundBetterSolutionOnTemperature = true;
+                        }
                         solutionCurrent = nextSolution;
+                        if (solutionCurrent.getVehicles().size() < solution.getVehicles().size()) {
+                            solution = solutionCurrent;
+                            if (!isFoundBetterSinceLastReheating) {
+                                isFoundBetterSinceLastReheating = true;
+                            }
+                        }
+                    } else {
+                        double pAcceptNext = Math.exp(
+                                -((nextSolution.getVehicles().size() - solutionCurrent.getVehicles().size())
+                                        / currentTemperature)
+                        );
+                        double generatedValue = random.nextDouble();
+                        if (generatedValue <= pAcceptNext) {
+//                            System.out.println("accepted worse: " + nextSolution.getVehicles().size());
+                            solutionCurrent = nextSolution;
+                        }
                     }
                 }
-            }
-            currentTemperature /= 1 + tBeta * currentTemperature;
-        } while (isFoundBetterSolution && System.currentTimeMillis() < endAfterTime);
+                currentTemperature /= 1 + tBeta * currentTemperature;
+                if (isFoundBetterSolutionOnTemperature) {
+                    shouldContinueSA = true;
+                }
+                if (!isFoundBetterSolutionOnTemperature && isFoundBetterSinceLastReheating) {
+                    isFoundBetterSinceLastReheating = false;
+                    shouldContinueSA = true;
+                }
+            } while (shouldContinueSA && System.currentTimeMillis() < endAfterTime);
+            totalTime = System.currentTimeMillis();
     }
 
     public String toString() {
-        return "solution: \n" + solution + "solution length: \n" + solution.getVehicles().size() + "\n";
+        return "solution length: " + solution.getVehicles().size();
+//        return "solution: \n" + solution + "solution length: \n" + solution.getVehicles().size() + "\n";
     }
 }

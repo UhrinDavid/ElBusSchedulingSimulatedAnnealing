@@ -64,10 +64,13 @@ public class ChargingEvent {
 	        String line = scanner.nextLine();
 	        try (Scanner rowScanner = new Scanner(line)) {
 	            rowScanner.useDelimiter(";");
-	            int par1 = Integer.parseInt(rowScanner.next());
-	            int par2 = Integer.parseInt(rowScanner.next());
-	            int par3 = Integer.parseInt(rowScanner.next());
-	            double par4 = Double.parseDouble(rowScanner.next());  
+	            int par1 = Integer.parseInt(rowScanner.next().replace("\"", ""));
+	            int par2 = Integer.parseInt(rowScanner.next().replace("\"", ""));
+	            int par3 = Integer.parseInt(rowScanner.next().replace("\"", ""));
+				rowScanner.next();
+				rowScanner.next();
+				rowScanner.next();
+	            double par4 = Double.parseDouble(rowScanner.next().replace("\"", ""));
 	            
 	            chargingEvents.add(new ChargingEvent(par1, par2, par3, par4, chargingEvents.size()));
 	        }
