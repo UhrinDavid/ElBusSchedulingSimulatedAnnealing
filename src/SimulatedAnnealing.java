@@ -25,8 +25,8 @@ public class SimulatedAnnealing {
     public SimulatedAnnealing(boolean shouldReheat, int maxComputingTimeSeconds, double maxT, double tBeta, int maxQ, String fileTrips, String fileChargers,
                               String fileEnergySTToST, String fileEnergySTToCE, String fileEnergyCEToST, String fileTimeSTToST,
                               String fileTimeSTToCE, String fileTimeCEToST) throws FileNotFoundException {
-        shouldReheat = shouldReheat;
-        maxComputingTimeSeconds = maxComputingTimeSeconds;
+        this.shouldReheat = shouldReheat;
+        this.maxComputingTimeSeconds = maxComputingTimeSeconds;
         totalTime = 0;
         ArrayList<ServiceTrip> serviceTrips;
         chargingEvents = ChargingEvent.createChargingEvents(fileChargers);
@@ -64,7 +64,7 @@ public class SimulatedAnnealing {
             rowScannerCij.useDelimiter(";");
             for (int j = 0; j < matrixNumberOfRows; j++) {
                 int timeDistance = Integer.parseInt(rowScannerTij.next());
-                double batteryConsumption = Double.parseDouble(rowScannerCij.next().replace("\"", ""));
+                double batteryConsumption = Double.parseDouble(rowScannerCij.next());
                 // check if such edge is possible (timewise), if not insert null
                 if (serviceTrips.get(i).getEnd() + timeDistance > serviceTrips.get(j).getStart()) {
                     matrixSTtoST[i][j] = null;
@@ -158,13 +158,13 @@ public class SimulatedAnnealing {
             long endAfterTime = maxComputingTimeSeconds * 1000 + startTime;
 
             Solution solutionCurrent = solution;
-            boolean isFoundBetterSolutionOnTemperature;
+            boolean isAcceptedSolutionOnTemperature;
             boolean isFoundBetterSinceLastReheating = false;
             boolean shouldContinueSA;
             double currentTemperature = maxT;
             do {
                 shouldContinueSA = false;
-                isFoundBetterSolutionOnTemperature = false;
+                isAcceptedSolutionOnTemperature = false;
                 for (int q = 0; q < maxQ; q++) {
                     Solution nextSolution = solutionCurrent.findNext(matrixSTtoST, matrixSTtoCE, matrixCEtoST, chargingEvents);
 //                    System.out.println("new solution: " + nextSolution.getVehicles().size());
@@ -173,8 +173,8 @@ public class SimulatedAnnealing {
                         return;
                     }
                     if (nextSolution.getVehicles().size() <= solutionCurrent.getVehicles().size()) {
-                        if (!isFoundBetterSolutionOnTemperature && nextSolution.getVehicles().size() < solutionCurrent.getVehicles().size()) {
-                            isFoundBetterSolutionOnTemperature = true;
+                        if (!isAcceptedSolutionOnTemperature) {
+                            isAcceptedSolutionOnTemperature = true;
                         }
                         solutionCurrent = nextSolution;
                         if (solutionCurrent.getVehicles().size() < solution.getVehicles().size()) {
@@ -191,24 +191,41 @@ public class SimulatedAnnealing {
                         double generatedValue = random.nextDouble();
                         if (generatedValue <= pAcceptNext) {
 //                            System.out.println("accepted worse: " + nextSolution.getVehicles().size());
+                            if (!isAcceptedSolutionOnTemperature) {
+                                isAcceptedSolutionOnTemperature = true;
+                            }
                             solutionCurrent = nextSolution;
                         }
                     }
                 }
+//                System.out.println("temp: "+ currentTemperature);
+//                System.out.println(solutionCurrent.getVehicles().size());
                 currentTemperature /= 1 + tBeta * currentTemperature;
-                if (isFoundBetterSolutionOnTemperature) {
+                if (isAcceptedSolutionOnTemperature) {
                     shouldContinueSA = true;
                 }
-                if (!isFoundBetterSolutionOnTemperature && isFoundBetterSinceLastReheating) {
+                if (!isAcceptedSolutionOnTemperature && isFoundBetterSinceLastReheating && shouldReheat) {
+                    currentTemperature = maxT;
                     isFoundBetterSinceLastReheating = false;
                     shouldContinueSA = true;
+                    System.out.println("reheating");
                 }
             } while (shouldContinueSA && System.currentTimeMillis() < endAfterTime);
             totalTime = System.currentTimeMillis();
     }
 
     public String toString() {
-        return "solution length: " + solution.getVehicles().size();
-//        return "solution: \n" + solution + "solution length: \n" + solution.getVehicles().size() + "\n";
+//        return "solution length: " + solution.getVehicles().size();
+        int freeEvents = 0;
+        for (ChargingEvent ev: chargingEvents
+             ) {
+            if (!ev.getIsReserved()) {
+                freeEvents++;
+            } else {
+                System.out.println(
+                        ev.getMatrixIndex());
+            }
+        }
+        return "solution: \n" + solution + "solution length: \n" + solution.getVehicles().size() + "\n" + "freeEvents: " + freeEvents;
     }
 }

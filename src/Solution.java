@@ -98,12 +98,12 @@ public class Solution {
         }
         if (removedTrips.size() > 0) {
             LinkedList<STsGroup> vehiclesFromRemoved = new LinkedList<>();
-//            if (!isAssignedMinOneST) {
-//                // split vehicle
-//                STsGroup vehicleFromRemoved = new STsGroup(removedStart, removedEnd);
-//                vehicleFromRemoved.addServiceTrip(removedTrips.remove(removedTrips.size() - 1));
-//                vehiclesFromRemoved.add(vehicleFromRemoved);
-//            }
+            if (!isAssignedMinOneST) {
+                // split vehicle
+                STsGroup vehicleFromRemoved = new STsGroup(removedStart, removedEnd);
+                vehicleFromRemoved.addServiceTrip(removedTrips.remove(removedTrips.size() - 1));
+                vehiclesFromRemoved.add(vehicleFromRemoved);
+            }
             // place first trip from removed to new vehicle, try to assign trips
             while(removedTrips.size() > 0) {
                 STsGroup STsGroupFromRemoved = new STsGroup(removedStart, removedEnd);

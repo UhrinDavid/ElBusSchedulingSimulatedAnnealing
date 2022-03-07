@@ -11,15 +11,15 @@ public class MainClass {
                 SimulatedAnnealing saAlgorithm = null;
                 try {
                     String dataSet = "27_Z";
-                    saAlgorithm = new SimulatedAnnealing(true, 600, 100, 0.1, 1000,
+                    saAlgorithm = new SimulatedAnnealing(true, 600, 50, 0.01, 1000,
                             "./src/DatasetsNew/spoje_id_" + dataSet + ".csv",
                             "./src/DatasetsNew/ChEvents_" + dataSet + ".csv",
-                            "./src/DatasetsNew/Tij_" + dataSet + ".csv",
-                            "./src/DatasetsNew/Tir_" + dataSet + ".csv",
-                            "./src/DatasetsNew/Tri_" + dataSet + ".csv",
                             "./src/DatasetsNew/Cij_" + dataSet + ".csv",
                             "./src/DatasetsNew/Cir_" + dataSet + ".csv",
-                            "./src/DatasetsNew/Cri_" + dataSet + ".csv"
+                            "./src/DatasetsNew/Cri_" + dataSet + ".csv",
+                            "./src/DatasetsNew/Tij_" + dataSet + ".csv",
+                            "./src/DatasetsNew/Tir_" + dataSet + ".csv",
+                            "./src/DatasetsNew/Tri_" + dataSet + ".csv"
                     );
                 } catch (FileNotFoundException e) {
                     e.printStackTrace();
