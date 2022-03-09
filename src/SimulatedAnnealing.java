@@ -81,7 +81,7 @@ public class SimulatedAnnealing {
                     }
                 }
 //                System.out.println("temp: "+ currentTemperature);
-//                System.out.println(solutionCurrent.getVehicles().size());
+//                System.out.println(solution.getVehicles().size());
                 currentTemperature /= 1 + tBeta * currentTemperature;
                 if (isAcceptedSolutionOnTemperature && currentTemperature > 0.1) {
                     shouldContinueSA = true;
@@ -95,18 +95,12 @@ public class SimulatedAnnealing {
             totalTime = System.currentTimeMillis();
     }
 
+    public Solution getSolution() {
+        return solution;
+    }
+
     public String toString() {
-        return "solution length: " + solution.getVehicles().size();
-//        int freeEvents = 0;
-//        for (ChargingEvent ev: chargingEvents
-//             ) {
-//            if (!ev.getIsReserved()) {
-//                freeEvents++;
-//            } else {
-//                System.out.println(
-//                        ev.getMatrixIndex());
-//            }
-//        }
-//        return "solution: \n" + solution + "solution length: \n" + solution.getVehicles().size() + "\n";
+//        return "solution length: " + solution.getVehicles().size();
+        return "solution: \n" + solution + "solution length: \n" + solution.getVehicles().size() + "\n";
     }
 }

@@ -123,12 +123,11 @@ public class STsGroup {
                                     && chargingEvents.get(indexCE + 1).getIndexCharger() == chargingEvents.get(indexCE).getIndexCharger();
                             // max charge until start of next event on charger, if event on charger is last
                             // we can charge until start of next trip
-                            final double maxChargingTimeOnEvent = isNextEventOnCharger
-                                    ? chargingEvents.get(indexCE + 1).getStartTime() - chargingEvents.get(indexCE).getStartTime()
-                                    : Double.POSITIVE_INFINITY;
+                            final ChargingEvent currCE = chargingEvents.get(indexCE);
+                            final double maxChargingTimeOnEvent = currCE.getEndTime() - currCE.getStartTime();
                             maxChargingTimeOverall += maxChargingTimeOnEvent;
                             final double actualMaxChargingTimeBetweenSTs = Math.min(maxTimeBetweenSTs, maxChargingTimeOverall);
-                            final double maxCharge = actualMaxChargingTimeBetweenSTs * chargingEvents.get(indexCE).getChargingSpeed();
+                            final double maxCharge = actualMaxChargingTimeBetweenSTs * currCE.getChargingSpeed();
                             potentialBatteryState = Math.min(currentBatteryState - consumptionDuringEvent + maxCharge, STsGroup.maxBatteryCapacity);
                             if (isNextEventOnCharger && potentialBatteryState < STsGroup.maxBatteryCapacity) {
                                 shouldCheckNextEventOnCharger = true;
@@ -157,6 +156,7 @@ public class STsGroup {
             if (!isFoundSuitableCharger) {
                 currentBatteryState -= tripConsumption;
                 if (currentBatteryState < 0) {
+//                    System.out.println("stuck middle "+deficiencyLeft);
                     for (ChargingEvent usedEvent : usedEvents
                     ) {
                         usedEvent.setIsReserved(false);
@@ -167,6 +167,7 @@ public class STsGroup {
             tripIndexCorrection++;
         }
 
+//        System.out.println("end "+deficiencyLeft);
         if (deficiencyLeft < 0) {
             for (ChargingEvent usedEvent : usedEvents
             ) {

@@ -166,6 +166,17 @@ public class Solution {
     }
 
     public String toString() {
+        int freeEvents = 0;
+        for (ChargingEvent ev: chargingEvents
+        ) {
+            if (!ev.getIsReserved()) {
+                freeEvents++;
+            } else {
+                System.out.println(
+                        ev.getMatrixIndex());
+            }
+        }
+        System.out.println("free: " + freeEvents + " total: " + chargingEvents.size());
         StringBuilder solutionString = new StringBuilder("Solution: \n");
         solutionString.append("Number of STsGroups used: ").append(sTsGroups.size()).append("\n");
         solutionString.append("\n");
