@@ -3,15 +3,11 @@ import java.io.FileNotFoundException;
 public class MainClass {
 
     public static void main(String[] args) {
-////        GUI applicationGUI = new GUI();
-//        for (int j = 0; j < 10; j++) {
-//            double t = Math.pow(10,j);
-//            System.out.println("##################\n t = "+t);
-            for (int i = 0; i < 1; i++) {
+            for (int i = 0; i < 10; i++) {
                 SimulatedAnnealing saAlgorithm = null;
                 try {
-                    String dataSet = "27_Z";
-                    saAlgorithm = new SimulatedAnnealing(true, 600, 50, 0.01, 1000,
+                    String dataSet = "TrolejbusyAll_Z";
+                    saAlgorithm = new SimulatedAnnealing(true, 600, 50, 0.1, 100,
                             "./src/DatasetsNew/spoje_id_" + dataSet + ".csv",
                             "./src/DatasetsNew/ChEvents_" + dataSet + ".csv",
                             "./src/DatasetsNew/Cij_" + dataSet + ".csv",
@@ -29,6 +25,5 @@ public class MainClass {
                 System.out.println(saAlgorithm);
             }
             System.out.println("##################\n");
-//        }
     }
 }

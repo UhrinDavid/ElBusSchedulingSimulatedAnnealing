@@ -1,48 +1,176 @@
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.Random;
+import java.util.Scanner;
 
 public class Solution {
-    private ArrayList<STsGroup> STsGroups;
+    private ArrayList<STsGroup> sTsGroups;
+    private ArrayList<ChargingEvent> chargingEvents;
     private Random random;
 
-    public Solution() {
-        STsGroups = new ArrayList<>();
+    private Edge[][] matrixSTtoST;
+    private Edge[][] matrixSTtoCE;
+    private Edge[][] matrixCEtoST;
+
+    public Solution(String fileTrips, String fileChargers,
+                    String fileEnergySTToST, String fileEnergySTToCE, String fileEnergyCEToST, String fileTimeSTToST,
+                    String fileTimeSTToCE, String fileTimeCEToST) throws FileNotFoundException {
+        sTsGroups = new ArrayList<>();
         this.random = new Random();
+        ArrayList<ServiceTrip> serviceTrips;
+        chargingEvents = ChargingEvent.createChargingEvents(fileChargers);
+        serviceTrips = ServiceTrip.loadServiceTripsFromFile(fileTrips);
+
+        for (int tripIndex = 1; tripIndex < serviceTrips.size() - 1; tripIndex++) {
+            STsGroup STsGroup = new STsGroup(serviceTrips.get(0), serviceTrips.get(serviceTrips.size() - 1));
+            STsGroup.addServiceTrip(serviceTrips.get(tripIndex));
+            addVehicle(STsGroup);
+        }
+
+
+        // ServiceTrip to ServiceTrip matrix
+        Scanner scannerTij = new Scanner(new File(fileTimeSTToST));
+        Scanner scannerCij = new Scanner(new File(fileEnergySTToST));
+        String lineTij = scannerTij.nextLine();
+        String lineCij = scannerCij.nextLine();
+        int matrixNumberOfLines = Integer.parseInt(lineTij);
+        lineTij = scannerTij.nextLine();
+        lineCij = scannerCij.nextLine();
+        int matrixNumberOfRows = Integer.parseInt(lineTij);
+
+        matrixSTtoST = new Edge[matrixNumberOfLines][matrixNumberOfRows];
+
+        for (int i = 0; i < matrixNumberOfLines; i++) {
+            lineTij = scannerTij.nextLine();
+            lineCij = scannerCij.nextLine();
+            Scanner rowScannerTij = new Scanner(lineTij);
+            Scanner rowScannerCij = new Scanner(lineCij);
+            rowScannerTij.useDelimiter(";");
+            rowScannerCij.useDelimiter(";");
+            for (int j = 0; j < matrixNumberOfRows; j++) {
+                int timeDistance = Integer.parseInt(rowScannerTij.next());
+                double batteryConsumption = Double.parseDouble(rowScannerCij.next());
+                // check if such edge is possible (timewise), if not insert null
+                if (serviceTrips.get(i).getEnd() + timeDistance > serviceTrips.get(j).getStart()) {
+                    matrixSTtoST[i][j] = null;
+                } else {
+                    matrixSTtoST[i][j] = new Edge(timeDistance, batteryConsumption);
+                }
+            }
+            rowScannerTij.close();
+            rowScannerCij.close();
+        }
+        scannerTij.close();
+        scannerCij.close();
+
+        //  TODO: if event is on same charger as previous and has same start time, don't create edge
+        // ServiceTrip to ChargingEvent matrix
+        Scanner scannerTir = new Scanner(new File(fileTimeSTToCE));
+        Scanner scannerCir = new Scanner(new File(fileEnergySTToCE));
+        String lineTir = scannerTir.nextLine();
+        String lineCir = scannerCir.nextLine();
+        matrixNumberOfLines = Integer.parseInt(lineTir);
+        lineTir = scannerTir.nextLine();
+        lineCir = scannerCir.nextLine();
+        matrixNumberOfRows = Integer.parseInt(lineTir);
+
+        matrixSTtoCE = new Edge[matrixNumberOfLines][matrixNumberOfRows];
+
+        for (int i = 0; i < matrixNumberOfLines; i++) {
+            lineTir = scannerTir.nextLine();
+            lineCir = scannerCir.nextLine();
+            Scanner rowScannerTir = new Scanner(lineTir);
+            Scanner rowScannerCir = new Scanner(lineCir);
+            rowScannerTir.useDelimiter(";");
+            rowScannerCir.useDelimiter(";");
+            for (int j = 0; j < matrixNumberOfRows; j++) {
+                int timeDistance = Integer.parseInt(rowScannerTir.next());
+                double batteryConsumption = Double.parseDouble(rowScannerCir.next());
+                if (serviceTrips.get(i).getEnd() + timeDistance > chargingEvents.get(j).getStartTime()) {
+                    matrixSTtoCE[i][j] = null;
+                } else {
+                    matrixSTtoCE[i][j] = new Edge(timeDistance, batteryConsumption);
+                }
+            }
+            rowScannerTir.close();
+            rowScannerCir.close();
+        }
+        scannerTir.close();
+        scannerCir.close();
+
+        // ServiceTrip to ChargingEvent matrix
+        Scanner scannerTrj = new Scanner(new File(fileTimeCEToST));
+        Scanner scannerCrj = new Scanner(new File(fileEnergyCEToST));
+        String lineTrj = scannerTrj.nextLine();
+        String lineCrj = scannerCrj.nextLine();
+        matrixNumberOfLines = Integer.parseInt(lineTrj);
+        lineTrj = scannerTrj.nextLine();
+        lineCir = scannerCrj.nextLine();
+        matrixNumberOfRows = Integer.parseInt(lineTrj);
+
+        matrixCEtoST = new Edge[matrixNumberOfLines][matrixNumberOfRows];
+
+        for (int i = 0; i < matrixNumberOfLines; i++) {
+            lineTrj = scannerTrj.nextLine();
+            lineCrj = scannerCrj.nextLine();
+            Scanner rowScannerTrj = new Scanner(lineTrj);
+            Scanner rowScannerCrj = new Scanner(lineCrj);
+            rowScannerTrj.useDelimiter(";");
+            rowScannerCrj.useDelimiter(";");
+            for (int j = 0; j < matrixNumberOfRows; j++) {
+                int timeDistance = Integer.parseInt(rowScannerTrj.next());
+                double batteryConsumption = Double.parseDouble(rowScannerCrj.next());
+                if (chargingEvents.get(i).getStartTime() + timeDistance > serviceTrips.get(j).getStart()) {
+                    matrixCEtoST[i][j] = null;
+                } else {
+                    matrixCEtoST[i][j] = new Edge(timeDistance, batteryConsumption);
+                }
+            }
+            rowScannerTrj.close();
+            rowScannerCrj.close();
+        }
+        scannerTrj.close();
+        scannerCrj.close();
     }
 
     public Solution(Solution solution) {
-        STsGroups = new ArrayList<>();
+        sTsGroups = new ArrayList<>();
         for (STsGroup STsGroup :
-                solution.STsGroups) {
-            STsGroups.add(new STsGroup(STsGroup));
+                solution.sTsGroups) {
+            sTsGroups.add(new STsGroup(STsGroup));
         }
+        chargingEvents = new ArrayList<>(solution.chargingEvents);
+        matrixSTtoST = solution.matrixSTtoST;
+        matrixCEtoST = solution.matrixCEtoST;
+        matrixSTtoCE = solution.matrixSTtoCE;
         this.random = new Random();
     }
 
     public void addVehicle(STsGroup STsGroup) {
-        STsGroups.add(STsGroup);
+        sTsGroups.add(STsGroup);
     }
 
     public boolean removeVehicle(STsGroup STsGroup) {
         // check if STsGroup has no service trips except depo
         if (!STsGroup.hasServiceTrips()) {
-            STsGroups.remove(STsGroup);
+            sTsGroups.remove(STsGroup);
             return true;
         }
         return false;
     }
 
     public ArrayList<STsGroup> getVehicles() {
-        return STsGroups;
+        return sTsGroups;
     }
 
     public String toString() {
         StringBuilder solutionString = new StringBuilder("Solution: \n");
-        solutionString.append("Number of STsGroups used: ").append(STsGroups.size()).append("\n");
+        solutionString.append("Number of STsGroups used: ").append(sTsGroups.size()).append("\n");
         solutionString.append("\n");
         int vehicleIndex = 1;
-        for ( STsGroup STsGroup : STsGroups) {
+        for ( STsGroup STsGroup : sTsGroups) {
             solutionString.append("STsGroup number: ").append(vehicleIndex).append("\n");
             solutionString.append(STsGroup);
             solutionString.append("\n");
@@ -51,14 +179,19 @@ public class Solution {
         return solutionString.toString();
     }
 
-    public Solution findNext(Edge[][] matrixSTtoST, Edge[][] matrixSTtoCE, Edge[][] matrixCEtoST, ArrayList<ChargingEvent> chargingEvents) {
-        if (this.STsGroups.size() == 1) {
+    public Solution findNext() {
+        int totalTrips = 0;
+        for (STsGroup gr: sTsGroups
+             ) {
+            totalTrips+=gr.getServiceTrips().size()-2;
+        }
+        if (this.sTsGroups.size() == 1) {
             return null;
         }
         Solution nextSolution = new Solution(this);
         // randomly choose vehicle from solution
-        int randomIndex = random.nextInt(nextSolution.STsGroups.size());
-        STsGroup randomSTsGroup = nextSolution.STsGroups.remove(randomIndex);
+        int randomIndex = random.nextInt(nextSolution.sTsGroups.size());
+        STsGroup randomSTsGroup = nextSolution.sTsGroups.remove(randomIndex);
 
         // release vehicle's CEs
         for (ChargingEvent event : randomSTsGroup.getChargingEvents()) {
@@ -74,10 +207,10 @@ public class Solution {
         // go over other Vehicles in Solution, try to assign any ST to another STsGroup
         boolean isAssignedMinOneST = false;
         int indexVehicle = 0;
-        while (indexVehicle < nextSolution.STsGroups.size() && removedTrips.size() > 0) {
+        while (indexVehicle < nextSolution.sTsGroups.size() && removedTrips.size() > 0) {
             // STsGroup to which we try to assign service trips from removedTrips
             // we keep this instance as a backup of STsGroup's STs and CEs in case we need to revert iteration
-            STsGroup originalSTsGroup = nextSolution.STsGroups.get(indexVehicle);
+            STsGroup originalSTsGroup = nextSolution.sTsGroups.get(indexVehicle);
 
             STsGroup STsGroup = new STsGroup(originalSTsGroup);
             ArrayList<ServiceTrip> removedTripsAfterInsert = STsGroup.tryInsertTrips(removedTrips, matrixSTtoST, matrixSTtoCE, matrixCEtoST, chargingEvents);
@@ -85,14 +218,14 @@ public class Solution {
                 if (!isAssignedMinOneST) {
                     isAssignedMinOneST = true;
                 }
-                nextSolution.STsGroups.set(indexVehicle, STsGroup);
+                nextSolution.sTsGroups.set(indexVehicle, STsGroup);
                 removedTrips = removedTripsAfterInsert;
             } else {
                 for (ChargingEvent cE : originalSTsGroup.getChargingEvents()
                      ) {
                     cE.setIsReserved(true);
                 }
-                nextSolution.STsGroups.set(indexVehicle, originalSTsGroup);
+                nextSolution.sTsGroups.set(indexVehicle, originalSTsGroup);
             }
             indexVehicle++;
         }
@@ -115,8 +248,16 @@ public class Solution {
             };
             for (STsGroup v : vehiclesFromRemoved
                  ) {
-                nextSolution.STsGroups.add(v);
+                nextSolution.sTsGroups.add(v);
             }
+        }
+        int totalTripsAfter = 0;
+        for (STsGroup gr: nextSolution.sTsGroups
+        ) {
+            totalTripsAfter+=gr.getServiceTrips().size()-2;
+        }
+        if (totalTripsAfter < totalTrips) {
+            System.out.println("loss of trips " + totalTrips + " after " + totalTripsAfter);
         }
         return nextSolution;
     }

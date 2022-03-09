@@ -1,23 +1,27 @@
 import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.Random;
 
 public class STsGroup {
     private ArrayList<ServiceTrip> serviceTrips;
     private ArrayList<ChargingEvent> assignedChargingEvents;
     final static double maxBatteryCapacity = 140;
     final static double minBatteryCapacity = 0;
+    private Random random;
 
     public STsGroup(ServiceTrip depoStart, ServiceTrip depoEnd) {
         serviceTrips = new ArrayList<>();
         assignedChargingEvents = new ArrayList<>();
         this.serviceTrips.add(depoStart);
         this.serviceTrips.add(depoEnd);
+        this.random = new Random();
     }
 
     public STsGroup(STsGroup STsGroup) {
         serviceTrips = new ArrayList<>(STsGroup.serviceTrips);
         assignedChargingEvents = new ArrayList<>(STsGroup.assignedChargingEvents);
+        this.random = new Random();
     }
-
 
     public void setAssignedChargingEvents(ArrayList<ChargingEvent> events) {
         this.assignedChargingEvents = new ArrayList<ChargingEvent>(events);
@@ -52,6 +56,7 @@ public class STsGroup {
     public String toString() {
         StringBuilder stringFinal = new StringBuilder();
         stringFinal.append("---------\n");
+        stringFinal.append("trips: ").append(serviceTrips.size() - 2).append("\n");
         for ( ServiceTrip serviceTrip : serviceTrips ) {
             stringFinal.append("Service trip: ").append(serviceTrip.getId()).append("\n");
         }
@@ -169,54 +174,36 @@ public class STsGroup {
             }
             return false;
         }
-        if (usedEvents.size() > 2) {
-            System.out.println("lot of ces: "+usedEvents.size());
-            if (usedEvents.get(0).getIndexCharger() != usedEvents.get(usedEvents.size()-1).getIndexCharger()) {
-
-                System.out.println("cross charger");
-            }
-            for (ChargingEvent evv: usedEvents
-            ) {
-                System.out.println(evv.getIndexCharger() + " :: " + evv.getMatrixIndex());
-            }
-        }
         this.assignedChargingEvents = new ArrayList<>(usedEvents);
         return true;
     }
 
     public ArrayList<ServiceTrip> tryInsertTrips(ArrayList<ServiceTrip> removedTripsPa, Edge[][] matrixSTtoST, Edge[][] matrixSTtoCE, Edge[][] matrixCEtoST, ArrayList<ChargingEvent> chargingEvents) {
+        int tripsBefore = serviceTrips.size();
         // backup of current state of removedTrips from vehicle we try to eliminate from the solution - in case we need to revert iteration
         ArrayList<ServiceTrip> removedTrips = new ArrayList<>(removedTripsPa);
+        ArrayList<ServiceTrip> failedToInsertList = new ArrayList<>();
 
         // try to find a time window between already existing trips in vehicle,
         // we don't take capacity deficiency into account at first, only if ST can be inserted respecting time restrictions
 
-        int indexRemovedTrips = 0;
-        int indexVehicleTrips = 0;
-        // flag is true if we add at least one new ST to the current vehicle
-        boolean isNewAdded = false;
-
         // trips' lists begins and ends with depo, we can insert between depo and first
         // but no after depo (therefore size - 1)
-        while (indexVehicleTrips < serviceTrips.size() - 1
-                && indexRemovedTrips < removedTrips.size()) {
-            ServiceTrip currentTrip = serviceTrips.get(indexVehicleTrips);
-            ServiceTrip nextTrip = serviceTrips.get(indexVehicleTrips + 1);
-            // find possible candidate from removedTrips to insert after ST at current index
-            // try to find index in removedTrips, whose corresponding CE starts after the end of current trip
-            while (indexRemovedTrips < removedTrips.size()
-                    && currentTrip.getEnd() >= removedTrips.get(indexRemovedTrips).getStart()) {
-                indexRemovedTrips++;
-            }
+        while (removedTrips.size() > 0) {
+            final int randomIndex = random.nextInt(removedTrips.size());
+            ServiceTrip removedTrip = removedTrips.remove(randomIndex);
+            boolean isAdded = false;
+            int indexVehicleTrips = 0;
+            while (indexVehicleTrips < serviceTrips.size() - 1 && !isAdded) {
+                ServiceTrip currentTrip = serviceTrips.get(indexVehicleTrips);
+                ServiceTrip nextTrip = serviceTrips.get(indexVehicleTrips + 1);
 
-            // check if indexRemovedTrips is within removedTrips size, if not we don't have a candidate
-            if (indexRemovedTrips < removedTrips.size()) {
-                ServiceTrip removedTrip = removedTrips.get(indexRemovedTrips);
                 // check if we can insert removedTrips[indexRemovedTrips] between current and next trip respecting time restrictions
                 // if start of removed is greater or equal than end of current + time from ST to ST
                 // && if start of next is greater or equal than end of removed + time from ST to ST
                 if (matrixSTtoST[currentTrip.getIndex()][removedTrip.getIndex()] != null
                         && matrixSTtoST[removedTrip.getIndex()][nextTrip.getIndex()] != null) {
+                    isAdded = true;
                     // removedTrip is added between current and next, battery deficiency has to be checked after
                     // adding all removedTrips to current vehicle that fit timewise, remove removedTrip from removedTrips
                     // release CEs of vehicle where we try to add removed ST
@@ -232,23 +219,26 @@ public class STsGroup {
                     double deficiencyAll = checkForBatteryDeficiency(matrixSTtoST);
 
                     // we need to insert charging events
-                    if (deficiencyAll < 0) {
-                        if (tryChargeBetweenSTs(deficiencyAll, matrixSTtoST, matrixSTtoCE, matrixCEtoST, chargingEvents)) {
-                            removedTrips.remove(removedTrip);
-                        } else {
+                    if (deficiencyAll < 0 && !tryChargeBetweenSTs(deficiencyAll, matrixSTtoST, matrixSTtoCE, matrixCEtoST, chargingEvents)) {
+
                             serviceTrips.remove(indexVehicleTrips--);
+                            failedToInsertList.add(removedTrip);
                             assignedChargingEvents = new ArrayList<>(cEsBackup);
                             for (ChargingEvent event : this.assignedChargingEvents) {
                                 event.setIsReserved(true);
                             }
-                        }
-                    } else {
-                        removedTrips.remove(removedTrip);
                     }
                 }
+                indexVehicleTrips++;
             }
-            indexVehicleTrips++;
+            if (!isAdded) {
+                failedToInsertList.add(removedTrip);
+            }
         }
-        return removedTrips;
+        int tripDiff = serviceTrips.size() - tripsBefore;
+        if (failedToInsertList.size() + tripDiff < removedTripsPa.size()) {
+            System.out.println("lost; failed " + failedToInsertList.size() + " diff " + tripDiff + " removed " + removedTripsPa.size());
+        }
+        return failedToInsertList;
     }
 }
