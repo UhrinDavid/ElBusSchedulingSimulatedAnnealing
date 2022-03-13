@@ -6,8 +6,8 @@ public class MainClass {
             for (int i = 0; i < 1; i++) {
                 SimulatedAnnealing saAlgorithm = null;
                 try {
-                    String dataSet = "TrolejbusyAll_Z";
-                    saAlgorithm = new SimulatedAnnealing(true, 600, 50, 0.1, 10,
+                    String dataSet = "AllZA_Z";
+                    saAlgorithm = new SimulatedAnnealing(true, 600, 50, 0.1, 100,
                             "./src/DatasetsNew/spoje_id_" + dataSet + ".csv",
                             "./src/DatasetsNew/ChEvents_" + dataSet + ".csv",
                             "./src/DatasetsNew/Cij_" + dataSet + ".csv",

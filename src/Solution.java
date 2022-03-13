@@ -7,7 +7,7 @@ import java.util.Scanner;
 
 public class Solution {
     private ArrayList<STsGroup> sTsGroups;
-    private ArrayList<ChargingEvent> chargingEvents;
+    private LinkedList<LinkedList<ChargingEvent>> chargersWithChargingEvents;
     private Random random;
 
     private Edge[][] matrixSTtoST;
@@ -20,7 +20,7 @@ public class Solution {
         sTsGroups = new ArrayList<>();
         this.random = new Random();
         ArrayList<ServiceTrip> serviceTrips;
-        chargingEvents = ChargingEvent.createChargingEvents(fileChargers);
+        LinkedList<ChargingEvent> chargingEvents = ChargingEvent.createChargingEvents(fileChargers);
         serviceTrips = ServiceTrip.loadServiceTripsFromFile(fileTrips);
 
         for (int tripIndex = 1; tripIndex < serviceTrips.size() - 1; tripIndex++) {
@@ -65,7 +65,6 @@ public class Solution {
         scannerTij.close();
         scannerCij.close();
 
-        //  TODO: if event is on same charger as previous and has same start time, don't create edge
         // ServiceTrip to ChargingEvent matrix
         Scanner scannerTir = new Scanner(new File(fileTimeSTToCE));
         Scanner scannerCir = new Scanner(new File(fileEnergySTToCE));
@@ -88,11 +87,7 @@ public class Solution {
             for (int j = 0; j < matrixNumberOfRows; j++) {
                 int timeDistance = Integer.parseInt(rowScannerTir.next());
                 double batteryConsumption = Double.parseDouble(rowScannerCir.next());
-                if (serviceTrips.get(i).getEnd() + timeDistance > chargingEvents.get(j).getStartTime()) {
-                    matrixSTtoCE[i][j] = null;
-                } else {
                     matrixSTtoCE[i][j] = new Edge(timeDistance, batteryConsumption);
-                }
             }
             rowScannerTir.close();
             rowScannerCir.close();
@@ -122,17 +117,22 @@ public class Solution {
             for (int j = 0; j < matrixNumberOfRows; j++) {
                 int timeDistance = Integer.parseInt(rowScannerTrj.next());
                 double batteryConsumption = Double.parseDouble(rowScannerCrj.next());
-                if (chargingEvents.get(i).getStartTime() + timeDistance > serviceTrips.get(j).getStart()) {
-                    matrixCEtoST[i][j] = null;
-                } else {
-                    matrixCEtoST[i][j] = new Edge(timeDistance, batteryConsumption);
-                }
+                matrixCEtoST[i][j] = new Edge(timeDistance, batteryConsumption);
             }
             rowScannerTrj.close();
             rowScannerCrj.close();
         }
         scannerTrj.close();
         scannerCrj.close();
+        this.chargersWithChargingEvents = new LinkedList<>();
+        for (ChargingEvent cE: chargingEvents
+             ) {
+            if (chargersWithChargingEvents.size() <= cE.getIndexCharger()) {
+                LinkedList<ChargingEvent> newCharger = new LinkedList<>();
+                chargersWithChargingEvents.add(newCharger);
+            }
+            chargersWithChargingEvents.get(cE.getIndexCharger()).add(cE);
+        }
     }
 
     public Solution(Solution solution) {
@@ -141,7 +141,7 @@ public class Solution {
                 solution.sTsGroups) {
             sTsGroups.add(new STsGroup(STsGroup));
         }
-        chargingEvents = new ArrayList<>(solution.chargingEvents);
+        chargersWithChargingEvents = solution.chargersWithChargingEvents;
         matrixSTtoST = solution.matrixSTtoST;
         matrixCEtoST = solution.matrixCEtoST;
         matrixSTtoCE = solution.matrixSTtoCE;
@@ -167,26 +167,31 @@ public class Solution {
 
     public String toString() {
         int freeEvents = 0;
-        for (ChargingEvent ev: chargingEvents
-        ) {
-            if (!ev.getIsReserved()) {
-                freeEvents++;
-            } else {
-                System.out.println(
-                        ev.getMatrixIndex());
+        int totalEvents = 0;
+        for (LinkedList<ChargingEvent> chargingEvents: chargersWithChargingEvents
+             ) {
+            totalEvents += chargingEvents.size();
+            for (ChargingEvent ev : chargingEvents
+            ) {
+                if (!ev.getIsReserved()) {
+                    freeEvents++;
+                }
             }
         }
-        System.out.println("free: " + freeEvents + " total: " + chargingEvents.size());
+        System.out.println("free: " + freeEvents + " total: " + totalEvents);
         StringBuilder solutionString = new StringBuilder("Solution: \n");
         solutionString.append("Number of STsGroups used: ").append(sTsGroups.size()).append("\n");
         solutionString.append("\n");
         int vehicleIndex = 1;
+        int totalSTs = 0;
         for ( STsGroup STsGroup : sTsGroups) {
             solutionString.append("STsGroup number: ").append(vehicleIndex).append("\n");
             solutionString.append(STsGroup);
             solutionString.append("\n");
+            totalSTs += STsGroup.getServiceTrips().size();
             vehicleIndex++;
         }
+        System.out.println("STs: " + totalSTs);
         return solutionString.toString();
     }
 
@@ -224,7 +229,7 @@ public class Solution {
             STsGroup originalSTsGroup = nextSolution.sTsGroups.get(indexVehicle);
 
             STsGroup STsGroup = new STsGroup(originalSTsGroup);
-            ArrayList<ServiceTrip> removedTripsAfterInsert = STsGroup.tryInsertTrips(removedTrips, matrixSTtoST, matrixSTtoCE, matrixCEtoST, chargingEvents);
+            ArrayList<ServiceTrip> removedTripsAfterInsert = STsGroup.tryInsertTrips(removedTrips, matrixSTtoST, matrixSTtoCE, matrixCEtoST, chargersWithChargingEvents);
             if (removedTripsAfterInsert.size() < removedTrips.size()) {
                 if (!isAssignedMinOneST) {
                     isAssignedMinOneST = true;
@@ -253,7 +258,7 @@ public class Solution {
                 STsGroup STsGroupFromRemoved = new STsGroup(removedStart, removedEnd);
                 STsGroupFromRemoved.addServiceTrip(removedTrips.remove(removedTrips.size() - 1));
                 if (removedTrips.size() > 0) {
-                    removedTrips = STsGroupFromRemoved.tryInsertTrips(removedTrips, matrixSTtoST, matrixSTtoCE, matrixCEtoST, chargingEvents);
+                    removedTrips = STsGroupFromRemoved.tryInsertTrips(removedTrips, matrixSTtoST, matrixSTtoCE, matrixCEtoST, chargersWithChargingEvents);
                 }
                 vehiclesFromRemoved.add(STsGroupFromRemoved);
             };
@@ -261,14 +266,6 @@ public class Solution {
                  ) {
                 nextSolution.sTsGroups.add(v);
             }
-        }
-        int totalTripsAfter = 0;
-        for (STsGroup gr: nextSolution.sTsGroups
-        ) {
-            totalTripsAfter+=gr.getServiceTrips().size()-2;
-        }
-        if (totalTripsAfter < totalTrips) {
-            System.out.println("loss of trips " + totalTrips + " after " + totalTripsAfter);
         }
         return nextSolution;
     }

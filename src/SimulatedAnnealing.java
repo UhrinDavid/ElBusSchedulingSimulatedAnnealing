@@ -80,8 +80,8 @@ public class SimulatedAnnealing {
                         }
                     }
                 }
-//                System.out.println("temp: "+ currentTemperature);
-//                System.out.println(solution.getVehicles().size());
+                System.out.println("temp: "+ currentTemperature);
+                System.out.println(solution.getVehicles().size());
                 currentTemperature /= 1 + tBeta * currentTemperature;
                 if (isAcceptedSolutionOnTemperature && currentTemperature > 0.1) {
                     shouldContinueSA = true;

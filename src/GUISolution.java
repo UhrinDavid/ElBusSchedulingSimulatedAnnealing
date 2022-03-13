@@ -22,25 +22,25 @@ public class GUISolution extends JFrame {
                     for (ServiceTrip trip: group.getServiceTrips()
                          ) {
                         g.setColor(Color.GREEN);
-                        g.fillRect(trip.getStart(), i*40, (trip.getEnd() - trip.getStart()), 20);
+                        g.fillRect(trip.getStart(), i*60, (trip.getEnd() - trip.getStart()), 20);
                         g.setColor(Color.BLACK);
 
                         g.setFont(new Font("Bold", 1, 14));
-                        g.drawString(""+trip.getId(), trip.getStart(), i*40+15);
+                        g.drawString(""+trip.getId(), trip.getStart(), i*60+15);
                     }
                     for (ChargingEvent ce: group.getChargingEvents()
                     ) {
                         g.setColor(Color.BLUE);
-                        g.fillRect(ce.getStartTime(), i*40 + 5, (ce.getEndTime() - ce.getStartTime()), 20);
+                        g.fillRect(ce.getStartTime(), i*60, (ce.getEndTime() - ce.getStartTime()), 20);
                         g.setColor(Color.BLACK);
 
                         g.setFont(new Font("Bold", 1, 14));
-                        g.drawString(""+ce.getMatrixIndex(), ce.getStartTime(), i*40+20);
+                        g.drawString(ce.getIndexCharger()+"_"+ce.getIndexChargingEvent(), ce.getStartTime(), i*60+15);
                     }
                 }
             }
         };
-        c.setSize(1500, solution.getVehicles().size() * 50);
+        c.setSize(1500, solution.getVehicles().size() * 60);
         // set background
         c.setBackground(Color.white);
         JScrollPane scrPane = new JScrollPane(c);

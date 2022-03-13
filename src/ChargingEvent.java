@@ -1,6 +1,6 @@
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.Scanner;
 
 public class ChargingEvent {
@@ -12,15 +12,12 @@ public class ChargingEvent {
 
 	private boolean isReserved = false;
 
-	private final int matrixIndex;
-
-	public ChargingEvent(int indexCharger, int indexChargingEvent, int startTime, int endTime, double chargingSpeed, int matrixIndex) {
+	public ChargingEvent(int indexCharger, int indexChargingEvent, int startTime, int endTime, double chargingSpeed) {
 		this.indexCharger = indexCharger;
 		this.indexChargingEvent = indexChargingEvent;
 		this.startTime = startTime;
 		this.endTime = endTime;
 		this.chargingSpeed = chargingSpeed;
-		this.matrixIndex = matrixIndex;
 	}
 
 	public ChargingEvent(ChargingEvent event) {
@@ -30,7 +27,6 @@ public class ChargingEvent {
 		this.endTime = event.endTime;
 		this.chargingSpeed = event.chargingSpeed;
 		this.isReserved = event.isReserved;
-		this.matrixIndex = event.matrixIndex;
 	}
 	
 	public int getIndexCharger() {
@@ -57,14 +53,12 @@ public class ChargingEvent {
 		this.isReserved = isReserved;
 	}
 
-	public int getMatrixIndex() { return  matrixIndex; }
-
 	public int getEndTime() {
 		return endTime;
 	}
 
-	public static ArrayList<ChargingEvent> createChargingEvents(String fileName) throws FileNotFoundException {
-		ArrayList<ChargingEvent> chargingEvents = new ArrayList<>();
+	public static LinkedList<ChargingEvent> createChargingEvents(String fileName) throws FileNotFoundException {
+		LinkedList<ChargingEvent> chargingEvents = new LinkedList<>();
 		Scanner scanner = new Scanner(new File(fileName));
 		scanner.nextLine();
 	    while (scanner.hasNextLine()) {
@@ -79,7 +73,7 @@ public class ChargingEvent {
 				rowScanner.next();
 	            double par5 = Double.parseDouble(rowScanner.next().replace("\"", ""));
 	            
-	            chargingEvents.add(new ChargingEvent(par1, par2, par3, par4, par5, chargingEvents.size()));
+	            chargingEvents.add(new ChargingEvent(par1, par2, par3, par4, par5));
 	        }
 	    }
 	    scanner.close();
