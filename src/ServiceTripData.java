@@ -1,9 +1,10 @@
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.Scanner;
 
-public class ServiceTrip {
+public class ServiceTripData {
 	private final int index;
 	private final int id;
 	private final int start;
@@ -11,8 +12,7 @@ public class ServiceTrip {
 	private final double distance;
 	private final double consumption;
 
-	
-	public ServiceTrip(int index, int id, int start, int end, double distance, double consumption) {
+	public ServiceTripData(int index, int id, int start, int end, double distance, double consumption) {
 		this.index = index;
 		this.id = id;
 		this.start = start;
@@ -43,8 +43,8 @@ public class ServiceTrip {
 
 	public int getIndex() {return index; }
 	
-	public static ArrayList<ServiceTrip> loadServiceTripsFromFile(String fileName) throws FileNotFoundException {
-		ArrayList<ServiceTrip> serviceTrips = new ArrayList<>();
+	public static LinkedList<ServiceTripData> loadServiceTripsFromFile(String fileName) throws FileNotFoundException {
+		LinkedList<ServiceTripData> serviceTripData = new LinkedList<>();
 		Scanner scanner = new Scanner(new File(fileName));
 		scanner.nextLine();
 	    while (scanner.hasNextLine()) {
@@ -62,11 +62,11 @@ public class ServiceTrip {
 	            double par5 = Double.parseDouble(rowScanner.next().replace("\"", ""));
 	            double par6 = Double.parseDouble(rowScanner.next().replace("\"", ""));
 	            
-	            serviceTrips.add(new ServiceTrip(par1, par2, par3, par4, par5,
+	            serviceTripData.add(new ServiceTripData(par1, par2, par3, par4, par5,
 	            								 par6));
 	        }
 	    }
 	    scanner.close();
-	    return serviceTrips;
+	    return serviceTripData;
 	}
 }

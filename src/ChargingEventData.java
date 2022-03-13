@@ -3,30 +3,27 @@ import java.io.FileNotFoundException;
 import java.util.LinkedList;
 import java.util.Scanner;
 
-public class ChargingEvent {
+public class ChargingEventData {
 	private final int indexCharger;
 	private final int indexChargingEvent;
-	private final int startTime;
-	private final int endTime;
+	private final int start;
+	private final int end;
 	private final double chargingSpeed;
 
-	private boolean isReserved = false;
-
-	public ChargingEvent(int indexCharger, int indexChargingEvent, int startTime, int endTime, double chargingSpeed) {
+	public ChargingEventData(int indexCharger, int indexChargingEvent, int start, int end, double chargingSpeed) {
 		this.indexCharger = indexCharger;
 		this.indexChargingEvent = indexChargingEvent;
-		this.startTime = startTime;
-		this.endTime = endTime;
+		this.start = start;
+		this.end = end;
 		this.chargingSpeed = chargingSpeed;
 	}
 
-	public ChargingEvent(ChargingEvent event) {
+	public ChargingEventData(ChargingEventData event) {
 		this.indexCharger = event.indexCharger;
 		this.indexChargingEvent = event.indexChargingEvent;
-		this.startTime = event.startTime;
-		this.endTime = event.endTime;
+		this.start = event.start;
+		this.end = event.end;
 		this.chargingSpeed = event.chargingSpeed;
-		this.isReserved = event.isReserved;
 	}
 	
 	public int getIndexCharger() {
@@ -37,28 +34,20 @@ public class ChargingEvent {
 		return indexChargingEvent;
 	}
 
-	public int getStartTime() {
-		return startTime;
+	public int getStart() {
+		return start;
 	}
 
 	public double getChargingSpeed() {
 		return chargingSpeed;
 	}
 
-	public boolean getIsReserved() {
-		return isReserved;
+	public int getEnd() {
+		return end;
 	}
 
-	public void setIsReserved(boolean isReserved) {
-		this.isReserved = isReserved;
-	}
-
-	public int getEndTime() {
-		return endTime;
-	}
-
-	public static LinkedList<ChargingEvent> createChargingEvents(String fileName) throws FileNotFoundException {
-		LinkedList<ChargingEvent> chargingEvents = new LinkedList<>();
+	public static LinkedList<ChargingEventData> createChargingEvents(String fileName) throws FileNotFoundException {
+		LinkedList<ChargingEventData> chargingEventData = new LinkedList<>();
 		Scanner scanner = new Scanner(new File(fileName));
 		scanner.nextLine();
 	    while (scanner.hasNextLine()) {
@@ -73,10 +62,10 @@ public class ChargingEvent {
 				rowScanner.next();
 	            double par5 = Double.parseDouble(rowScanner.next().replace("\"", ""));
 	            
-	            chargingEvents.add(new ChargingEvent(par1, par2, par3, par4, par5));
+	            chargingEventData.add(new ChargingEventData(par1, par2, par3, par4, par5));
 	        }
 	    }
 	    scanner.close();
-	    return chargingEvents;
+	    return chargingEventData;
 	}
 }

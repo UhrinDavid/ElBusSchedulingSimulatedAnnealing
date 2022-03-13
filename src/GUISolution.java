@@ -1,8 +1,5 @@
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.io.FileNotFoundException;
 
 public class GUISolution extends JFrame {
 
@@ -19,7 +16,7 @@ public class GUISolution extends JFrame {
                 for (int i = 0; i < solution.getVehicles().size(); i++) {
                     STsGroup group = solution.getVehicles().get(i);
                     boolean isOdd = false;
-                    for (ServiceTrip trip: group.getServiceTrips()
+                    for (ServiceTripData trip: group.getServiceTrips()
                          ) {
                         g.setColor(Color.GREEN);
                         g.fillRect(trip.getStart(), i*60, (trip.getEnd() - trip.getStart()), 20);
@@ -28,14 +25,14 @@ public class GUISolution extends JFrame {
                         g.setFont(new Font("Bold", 1, 14));
                         g.drawString(""+trip.getId(), trip.getStart(), i*60+15);
                     }
-                    for (ChargingEvent ce: group.getChargingEvents()
+                    for (ChargingEventData ce: group.getChargingEvents()
                     ) {
                         g.setColor(Color.BLUE);
-                        g.fillRect(ce.getStartTime(), i*60, (ce.getEndTime() - ce.getStartTime()), 20);
+                        g.fillRect(ce.getStart(), i*60, (ce.getEnd() - ce.getStart()), 20);
                         g.setColor(Color.BLACK);
 
                         g.setFont(new Font("Bold", 1, 14));
-                        g.drawString(ce.getIndexCharger()+"_"+ce.getIndexChargingEvent(), ce.getStartTime(), i*60+15);
+                        g.drawString(ce.getIndexCharger()+"_"+ce.getIndexChargingEvent(), ce.getStart(), i*60+15);
                     }
                 }
             }
