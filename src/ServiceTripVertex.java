@@ -13,8 +13,8 @@ public class ServiceTripVertex extends  ServiceTripData implements STGroupVertex
                 serviceTripData.getEnd(), serviceTripData.getDistance(), serviceTripData.getConsumption());
         this.edgesSubsequentTrips = new TreeMap<>(edgesSubsequentTrips);
 
-        this.edgesSubsequentCes = (Edge[]) edgesSubsequentCesList.toArray();
-        this.edgesPreviousCes = (Edge[]) edgesPreviousCesList.toArray();
+        this.edgesSubsequentCes = edgesSubsequentCesList.toArray(Edge[]::new);
+        this.edgesPreviousCes = edgesPreviousCesList.toArray(Edge[]::new);
     }
 
     public Edge getEdgeForSubsequentTrip(int subsequentTripId) {

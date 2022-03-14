@@ -54,12 +54,12 @@ public class SimulatedAnnealing {
                     if (nextSolution == null) {
                         return;
                     }
-                    if (nextSolution.getVehicles().size() <= solutionCurrent.getVehicles().size()) {
+                    if (nextSolution.getsTsGroups().size() <= solutionCurrent.getsTsGroups().size()) {
                         if (!isAcceptedSolutionOnTemperature) {
                             isAcceptedSolutionOnTemperature = true;
                         }
                         solutionCurrent = nextSolution;
-                        if (solutionCurrent.getVehicles().size() < solution.getVehicles().size()) {
+                        if (solutionCurrent.getsTsGroups().size() < solution.getsTsGroups().size()) {
                             solution = solutionCurrent;
                             if (!isFoundBetterSinceLastReheating) {
                                 isFoundBetterSinceLastReheating = true;
@@ -67,7 +67,7 @@ public class SimulatedAnnealing {
                         }
                     } else {
                         double pAcceptNext = Math.exp(
-                                -((nextSolution.getVehicles().size() - solutionCurrent.getVehicles().size())
+                                -((nextSolution.getsTsGroups().size() - solutionCurrent.getsTsGroups().size())
                                         / currentTemperature)
                         );
                         double generatedValue = random.nextDouble();
@@ -77,11 +77,13 @@ public class SimulatedAnnealing {
                                 isAcceptedSolutionOnTemperature = true;
                             }
                             solutionCurrent = nextSolution;
+                        } else {
+                            solutionCurrent.resetChargersForSolution();
                         }
                     }
                 }
                 System.out.println("temp: "+ currentTemperature);
-                System.out.println(solution.getVehicles().size());
+                System.out.println(solution.getsTsGroups().size());
                 currentTemperature /= 1 + tBeta * currentTemperature;
                 if (isAcceptedSolutionOnTemperature && currentTemperature > 0.1) {
                     shouldContinueSA = true;
@@ -101,6 +103,6 @@ public class SimulatedAnnealing {
 
     public String toString() {
 //        return "solution length: " + solution.getVehicles().size();
-        return "solution: \n" + solution + "solution length: \n" + solution.getVehicles().size() + "\n";
+        return "solution: \n" + solution + "solution length: \n" + solution.getsTsGroups().size() + "\n";
     }
 }

@@ -1,5 +1,6 @@
 import javax.swing.*;
 import java.awt.*;
+import java.util.Map;
 
 public class GUISolution extends JFrame {
 
@@ -11,33 +12,31 @@ public class GUISolution extends JFrame {
             // paint the canvas
             public void paint(Graphics g)
             {
-                // set color to red
                 g.setColor(Color.GREEN);
-                for (int i = 0; i < solution.getVehicles().size(); i++) {
-                    STsGroup group = solution.getVehicles().get(i);
+                for (int i = 0; i < solution.getsTsGroups().size(); i++) {
+                    STsGroup group = solution.getsTsGroups().get(i);
                     boolean isOdd = false;
-                    for (ServiceTripData trip: group.getServiceTrips()
+                    for (Map.Entry<Integer, STGroupVertex> vertex: group.getServiceTripsWithCEsVertices().entrySet()
                          ) {
-                        g.setColor(Color.GREEN);
-                        g.fillRect(trip.getStart(), i*60, (trip.getEnd() - trip.getStart()), 20);
                         g.setColor(Color.BLACK);
-
                         g.setFont(new Font("Bold", 1, 14));
-                        g.drawString(""+trip.getId(), trip.getStart(), i*60+15);
-                    }
-                    for (ChargingEventData ce: group.getChargingEvents()
-                    ) {
-                        g.setColor(Color.BLUE);
-                        g.fillRect(ce.getStart(), i*60, (ce.getEnd() - ce.getStart()), 20);
-                        g.setColor(Color.BLACK);
+                        if (vertex.getValue() instanceof ServiceTripVertex) {
+                            g.drawString(""+((ServiceTripVertex) vertex.getValue()).getId(), vertex.getValue().getStart(), i*60+35);
+                            g.setColor(Color.GREEN);
+                        } else if (((ChargingEventVertex) vertex.getValue()).isReserved()) {
+                            g.setColor(Color.BLUE);
+                            g.drawString(((ChargingEventVertex) vertex.getValue()).getIndexCharger()+"_"+((ChargingEventVertex) vertex.getValue()).getIndexChargingEvent(), ((ChargingEventVertex) vertex.getValue()).getStart(), i*60+35);
+                        } else {
+                            g.setColor(Color.RED);
+                            g.drawString(((ChargingEventVertex) vertex.getValue()).getIndexCharger()+"_"+((ChargingEventVertex) vertex.getValue()).getIndexChargingEvent(), ((ChargingEventVertex) vertex.getValue()).getStart(), i*60+35);
+                        }
+                        g.fillRect(vertex.getValue().getStart(), i*60, (vertex.getValue().getEnd() - vertex.getValue().getStart()), 20);
 
-                        g.setFont(new Font("Bold", 1, 14));
-                        g.drawString(ce.getIndexCharger()+"_"+ce.getIndexChargingEvent(), ce.getStart(), i*60+15);
                     }
                 }
             }
         };
-        c.setSize(1500, solution.getVehicles().size() * 60);
+        c.setSize(1500, 1000);
         // set background
         c.setBackground(Color.white);
         JScrollPane scrPane = new JScrollPane(c);

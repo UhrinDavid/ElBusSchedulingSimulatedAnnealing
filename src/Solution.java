@@ -121,20 +121,33 @@ public class Solution {
             chargersWithChargingEvents.get(cE.getIndexCharger()).put(cE.getStart(), new ChargingEventVertex(cE));
         }
 
-        for (int i = 0; i < serviceTripData.size(); i++) {
+        for (int tripIndex = 0; tripIndex < serviceTripData.size(); tripIndex++) {
+            ServiceTripData trip = serviceTripData.get(tripIndex);
+            TreeMap<Integer, Edge> edgesSubsequentTrips = new TreeMap<>();
+            LinkedList<Edge> edgesSubsequentCes = new LinkedList<>();
+            LinkedList<Edge> edgesPreviousCes = new LinkedList<>();
             for (int j = 0; j < serviceTripData.size(); j++) {
-                for (int k = 0; k < chargingEventData.size(); k++) {
+                if (matrixSTtoST[tripIndex][j] != null && trip.getStart() < serviceTripData.get(j).getStart()) {
+                    edgesSubsequentTrips.put(serviceTripData.get(j).getId(), matrixSTtoST[tripIndex][j]);
+                }
+                if (matrixSTtoST[j][tripIndex] != null && trip.getStart() < serviceTripData.get(j).getStart()) {
+                    edgesSubsequentTrips.put(serviceTripData.get(j).getId(), matrixSTtoST[tripIndex][j]);
+                }
 
+                for (int k = 0; k < chargersWithChargingEvents.size(); k++) {
+                    edgesPreviousCes.add(matrixCEtoST[k][tripIndex]);
+                    edgesSubsequentCes.add(matrixSTtoCE[tripIndex][k]);
                 }
             }
-        }
 
-        STsGroup.getDepoStart(serviceTripData.get(0));
-        STsGroup.setDepoEnd(serviceTripData.get(serviceTripData.size()));
-
-        for (int tripIndex = 1; tripIndex < serviceTripData.size() - 1; tripIndex++) {
-            STsGroup STsGroup = new STsGroup(serviceTripData.get(tripIndex));
-            addVehicle(STsGroup);
+            if (tripIndex == 0) {
+                STsGroup.setDepoStart(new ServiceTripVertex(trip, edgesSubsequentTrips, edgesSubsequentCes, edgesPreviousCes));
+            } else if (tripIndex == serviceTripData.size() - 1){
+                STsGroup.setDepoEnd(new ServiceTripVertex(trip, edgesSubsequentTrips, edgesSubsequentCes, edgesPreviousCes));
+            } else {
+                STsGroup group = new STsGroup(new ServiceTripVertex(trip, edgesSubsequentTrips, edgesSubsequentCes, edgesPreviousCes));
+                sTsGroups.add(group);
+            }
         }
     }
 
@@ -146,6 +159,20 @@ public class Solution {
         }
         chargersWithChargingEvents = solution.chargersWithChargingEvents;
         this.random = new Random();
+    }
+
+    public void resetChargersForSolution() {
+        for (TreeMap<Integer, ChargingEventVertex> charger : chargersWithChargingEvents
+             ) {
+            for (Map.Entry<Integer, ChargingEventVertex> cE: charger.entrySet()
+                 ) {
+                cE.getValue().setReserved(false);
+            }
+        }
+        for (STsGroup gr : sTsGroups
+             ) {
+           gr.reserveAssignedCEs();
+        }
     }
 
     public String toString() {
@@ -194,5 +221,9 @@ public class Solution {
             nextSolution.sTsGroups.addAll(vehiclesFromRemoved);
         }
         return nextSolution;
+    }
+
+    public LinkedList<STsGroup> getsTsGroups() {
+        return sTsGroups;
     }
 }
