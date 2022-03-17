@@ -7,7 +7,7 @@ public class MainClass {
                 SimulatedAnnealing saAlgorithm = null;
                 try {
                     String dataSet = "AllZa_Z";
-                    saAlgorithm = new SimulatedAnnealing(true, 600, 50, 0.9, 100,
+                    saAlgorithm = new SimulatedAnnealing(true, 600, 50, 0.1, 100,
                             "./src/DatasetsNew/spoje_id_" + dataSet + ".csv",
                             "./src/DatasetsNew/ChEvents_" + dataSet + ".csv",
                             "./src/DatasetsNew/Cij_" + dataSet + ".csv",

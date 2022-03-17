@@ -232,8 +232,16 @@ public class Solution {
             // STsGroup to which we try to assign service trips from removedTrips
             // we keep this instance as a backup of STsGroup's STs and CEs in case we need to revert iteration
             STsGroup group = nextSolution.sTsGroups.get(indexGroup);
-
+//            double batteryValidation1 = group.validateGroup();
+//            if (batteryValidation1 < 0) {
+//                System.out.println("invalid group beforre insert: "+" battery: "+ batteryValidation1);
+//            }
             STsGroup groupAfterTryInsert = group.tryInsertTrips(randomSTsGroup, nextSolution.chargersWithChargingEvents);
+
+//                double batteryValidation = groupAfterTryInsert.validateGroup();
+//                if (batteryValidation < 0) {
+//                    System.out.println("invalid group after insert: "+" battery: "+ batteryValidation);
+//                }
              if (group == groupAfterTryInsert && !isAssignedMinOneST) {
                 isAssignedMinOneST = true;
             }

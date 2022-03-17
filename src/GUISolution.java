@@ -17,33 +17,44 @@ public class GUISolution extends JFrame {
                     STsGroup group = solution.getsTsGroups().get(i);
 
 
-//                    g.setColor(Color.BLACK);
-//                    g.setFont(new Font("Bold", 1, 14));
-//                    g.drawString(""+STsGroup.getDepoStart().getId(), STsGroup.getDepoStart().getStart(), i*60+35);
+                    g.setColor(Color.BLACK);
+                    g.setFont(new Font("Bold", 1, 10));
+                    g.drawString(""+STsGroup.getDepoStart().getId(), STsGroup.getDepoStart().getStart(), i*15+10);
                     g.setColor(Color.GREEN);
-                    g.fillRect(STsGroup.getDepoStart().getStart(), i*60, (STsGroup.getDepoStart().getEnd() - STsGroup.getDepoStart().getStart()), 20);
+                    g.fillRect(STsGroup.getDepoStart().getStart(), i*15, (STsGroup.getDepoStart().getEnd() - STsGroup.getDepoStart().getStart()), 10);
 
-//                    g.setColor(Color.BLACK);
-//                    g.setFont(new Font("Bold", 1, 14));
-//                    g.drawString(""+STsGroup.getDepoEnd().getId(), STsGroup.getDepoEnd().getStart(), i*60+35);
+                    g.setColor(Color.BLACK);
+                    g.setFont(new Font("Bold", 1, 10));
+                    g.drawString(""+STsGroup.getDepoEnd().getId(), STsGroup.getDepoEnd().getStart(), i*15+10);
                     g.setColor(Color.GREEN);
-                    g.fillRect(STsGroup.getDepoEnd().getStart(), i*60, (STsGroup.getDepoEnd().getEnd() - STsGroup.getDepoEnd().getStart()), 20);
+                    g.fillRect(STsGroup.getDepoEnd().getStart(), i*15, (STsGroup.getDepoEnd().getEnd() - STsGroup.getDepoEnd().getStart()), 10);
 
                     for (Map.Entry<Integer, STGroupVertex> vertex: group.getServiceTripsWithCEsVertices().entrySet()
                          ) {
-//                        g.setColor(Color.BLACK);
-//                        g.setFont(new Font("Bold", 1, 14));
+                        g.setColor(Color.BLACK);
+                        g.setFont(new Font("Bold", 1, 10));
                         if (vertex.getValue() instanceof ServiceTripVertex) {
-//                            g.drawString(""+((ServiceTripVertex) vertex.getValue()).getId(), vertex.getValue().getStart(), i*60+35);
                             g.setColor(Color.GREEN);
+
+                            g.fillRect(vertex.getValue().getStart(), i*15, (vertex.getValue().getEnd() - vertex.getValue().getStart()), 10);
+
+                            g.setColor(Color.BLACK);
+                            g.drawString(""+((ServiceTripVertex) vertex.getValue()).getId(), vertex.getValue().getStart(), i*15+10);
                         } else if (((ChargingEventVertex) vertex.getValue()).isReserved()) {
                             g.setColor(Color.BLUE);
-//                            g.drawString(((ChargingEventVertex) vertex.getValue()).getIndexCharger()+"_"+((ChargingEventVertex) vertex.getValue()).getIndexChargingEvent(), ((ChargingEventVertex) vertex.getValue()).getStart(), i*60+35);
+                            g.fillRect(vertex.getValue().getStart(), i*15, (vertex.getValue().getEnd() - vertex.getValue().getStart()), 10);
+
+                            g.setColor(Color.BLACK);
+                            g.drawString(((ChargingEventVertex) vertex.getValue()).getIndexCharger()+"_"+((ChargingEventVertex) vertex.getValue()).getIndexChargingEvent(), ((ChargingEventVertex) vertex.getValue()).getStart(), i*15+10);
+
                         } else {
                             g.setColor(Color.RED);
-//                            g.drawString(/((ChargingEventVertex) vertex.getValue()).getIndexCharger()+"_"+((ChargingEventVertex) vertex.getValue()).getIndexChargingEvent(), ((ChargingEventVertex) vertex.getValue()).getStart(), i*60+35);
+                            g.fillRect(vertex.getValue().getStart(), i*15, (vertex.getValue().getEnd() - vertex.getValue().getStart()), 10);
+
+                            g.setColor(Color.BLACK);
+                            g.drawString(((ChargingEventVertex) vertex.getValue()).getIndexCharger()+"_"+((ChargingEventVertex) vertex.getValue()).getIndexChargingEvent(), ((ChargingEventVertex) vertex.getValue()).getStart(), i*15+10);
+
                         }
-                        g.fillRect(vertex.getValue().getStart(), i*7, (vertex.getValue().getEnd() - vertex.getValue().getStart()), 5);
 
                     }
                 }
@@ -71,17 +82,17 @@ public class GUISolution extends JFrame {
 //                    STsGroup group = solution.getsTsGroups().get(i);
 
 
-//                    g.setColor(Color.BLACK);
-//                    g.setFont(new Font("Bold", 1, 14));
-//                    g.drawString(""+STsGroup.getDepoStart().getId(), STsGroup.getDepoStart().getStart(), i*60+35);
+                    g.setColor(Color.BLACK);
+                    g.setFont(new Font("Bold", 1, 10));
+                    g.drawString(""+STsGroup.getDepoStart().getId(), STsGroup.getDepoStart().getStart(), i*15+10);
                     g.setColor(Color.GREEN);
-                    g.fillRect(STsGroup.getDepoStart().getStart(), i*60, (STsGroup.getDepoStart().getEnd() - STsGroup.getDepoStart().getStart()), 20);
+                    g.fillRect(STsGroup.getDepoStart().getStart(), i*15, (STsGroup.getDepoStart().getEnd() - STsGroup.getDepoStart().getStart()), 10);
 
 //                    g.setColor(Color.BLACK);
 //                    g.setFont(new Font("Bold", 1, 14));
 //                    g.drawString(""+STsGroup.getDepoEnd().getId(), STsGroup.getDepoEnd().getStart(), i*60+35);
                     g.setColor(Color.GREEN);
-                    g.fillRect(STsGroup.getDepoEnd().getStart(), i*60, (STsGroup.getDepoEnd().getEnd() - STsGroup.getDepoEnd().getStart()), 20);
+                    g.fillRect(STsGroup.getDepoEnd().getStart(), i*15, (STsGroup.getDepoEnd().getEnd() - STsGroup.getDepoEnd().getStart()), 10);
 
                     for (Map.Entry<Integer, STGroupVertex> vertex: group.getServiceTripsWithCEsVertices().entrySet()
                     ) {

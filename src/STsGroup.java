@@ -135,7 +135,8 @@ public class STsGroup {
                         } else {
                             shouldCheckEventOnCharger = false;
                         }
-                        cE = chargingEventsOnCharger.ceilingEntry(cE.getEnd()).getValue();
+                        cEEntry = chargingEventsOnCharger.ceilingEntry(cE.getEnd());
+                        cE = cEEntry == null ?  null : cEEntry.getValue();
                     } while (cE != null && shouldCheckEventOnCharger && cE.getStart() + edgeCEtoST.getTimeDistance() < trip.getStart()
                             && !cE.isReserved());
                     // check if we charge more than minimum required for next trip / more than is consumed to and from event
@@ -148,7 +149,6 @@ public class STsGroup {
                                 new TreeMap<>( chargingEventsOnCharger.subMap(firstInsertableCEKey, false, lastInsertableCEKey, firstInsertableCEKey == lastInsertableCEKey ? false : true));
                         ChargingEventVertex firstEvent = chargingEventsOnCharger.get(firstInsertableCEKey);
                         int firstPossibleStart = Math.max(firstEvent.getStart(), tripPrevious.getEnd() + edgeSTtoCE.getTimeDistance());
-                        System.out.println(firstPossibleStart);
                         eventsToAdd.put(firstPossibleStart, firstEvent);
                         for (Map.Entry<Integer, ChargingEventVertex> cEToReserve : eventsToAdd.entrySet()
                              ) {
@@ -230,7 +230,10 @@ public class STsGroup {
         LinkedList<STGroupVertex> removedTrips = new LinkedList<>(removedGroup.serviceTripsWithCEsVertices.values());
         TreeMap<Integer, STGroupVertex> failedToInsertList = new TreeMap<>();
         int removedTripsInitialSize = removedTrips.size();
-
+//        double batteryValidation5 = this.validateGroup();
+//        if (batteryValidation5 < 0) {
+//            System.out.println("invalid group tryinsert start: " + " battery: " + batteryValidation5);
+//        }
         // try to find a time window between already existing trips in vehicle,
         // we don't take capacity deficiency into account at first, only if ST can be inserted respecting time restrictions
 
@@ -239,15 +242,15 @@ public class STsGroup {
         while (removedTrips.size() > 0) {
             final int randomIndex = random.nextInt(removedTrips.size());
             ServiceTripVertex removedTrip = (ServiceTripVertex) removedTrips.remove(randomIndex);
-            LinkedList<ChargingEventVertex> cEsBackup = new LinkedList<>();
+            TreeMap<Integer,STGroupVertex> cEsBackup = new TreeMap<>();
             Iterator<Map.Entry<Integer, STGroupVertex>> vertexIt = this.serviceTripsWithCEsVertices.entrySet().iterator();
              while (vertexIt.hasNext()){
                  Map.Entry<Integer, STGroupVertex> vertex = vertexIt.next();
                 if (vertex.getValue() instanceof ChargingEventVertex) {
                     ChargingEventVertex vertexCE = (ChargingEventVertex) vertex.getValue();
+                    cEsBackup.put(vertex.getKey(), vertex.getValue());
                     vertexIt.remove();
                     vertexCE.setReserved(false);
-                    cEsBackup.add(vertexCE);
                 }
             }
              Map.Entry<Integer, STGroupVertex> vertexBefore = serviceTripsWithCEsVertices
@@ -266,21 +269,54 @@ public class STsGroup {
 //                    System.out.println("failed to charge");
                     serviceTripsWithCEsVertices.remove(removedTrip.getStart());
                     failedToInsertList.put(removedTrip.getStart(), removedTrip);
-                    for (ChargingEventVertex event : cEsBackup) {
-                        event.setReserved(true);
-                        serviceTripsWithCEsVertices.put(event.getIndexChargingEvent(), event);
+                    for (Map.Entry<Integer, STGroupVertex> event : cEsBackup.entrySet()) {
+                        ChargingEventVertex val = (ChargingEventVertex) event.getValue();
+                        val.setReserved(true);
+                        serviceTripsWithCEsVertices.put(event.getKey(), event.getValue());
                     }
+//                    double batteryValidation = this.validateGroup();
+//                    if (batteryValidation < 0) {
+//                        System.out.println("invalid group after failed charge: "+" battery: "+ batteryValidation);
+//                    }
                 }
                 else if (deficiencyAll < 0 ) {
 //                    new GUISolution(this);
-                    System.out.println("charged"+ this);
+//                    System.out.println("charged"+ this);
+//                    double batteryValidation = this.validateGroup();
+//                    if (batteryValidation < 0) {
+//                        System.out.println("invalid group after sucessfull charge: "+" battery: "+ batteryValidation);
+//                    }
                 }
+//                else if (deficiencyAll > 0) {
+//                    double batteryValidation = this.validateGroup();
+//                    if (batteryValidation < 0) {
+//                        System.out.println("invalid group after no deficiency detected: " + " battery: " + batteryValidation);
+//                    }
+//                }
             } else {
+                for (Map.Entry<Integer, STGroupVertex> event : cEsBackup.entrySet()) {
+                    ChargingEventVertex val = (ChargingEventVertex) event.getValue();
+                    val.setReserved(true);
+                    serviceTripsWithCEsVertices.put(event.getKey(), event.getValue());
+                }
                 failedToInsertList.put(removedTrip.getStart(), removedTrip);
+//                double batteryValidation = this.validateGroup();
+//                if (batteryValidation < 0) {
+//                    System.out.println("invalid group after non existing stst edge: "+" battery: "+ batteryValidation);
+//                }
             }
         }
         removedGroup.serviceTripsWithCEsVertices = failedToInsertList;
+//        double batteryValidation = this.validateGroup();
+//        if (batteryValidation < 0) {
+//            System.out.println("invalid group at tryinsert end: "+" battery: "+ batteryValidation);
+//        }
         if (failedToInsertList.size() == removedTripsInitialSize) {
+
+//            double batteryValidation1 = this.validateGroup();
+//            if (batteryValidation1 < 0) {
+//                System.out.println("invalid group backup: "+" battery: "+ batteryValidation1);
+//            }
             return  backupGroup;
         }
         return this;
@@ -313,5 +349,59 @@ public class STsGroup {
 
     public TreeMap<Integer, STGroupVertex> getServiceTripsWithCEsVertices() {
         return serviceTripsWithCEsVertices;
+    }
+
+    public double validateGroup() {
+        STGroupVertex itemPrevious = STsGroup.getDepoStart();
+
+        double battery = STsGroup.maxBatteryCapacity;
+        int i = 0;
+        for (Map.Entry<Integer, STGroupVertex> vertex: serviceTripsWithCEsVertices.entrySet()
+             ) {
+           STGroupVertex item = vertex.getValue();
+            if (item instanceof ChargingEventVertex) {
+                if (itemPrevious instanceof ServiceTripVertex) {
+                    Edge edge = ((ServiceTripVertex) itemPrevious).getEdgeForSubsequentCE(((ChargingEventVertex) item).getIndexCharger());
+                    battery -= edge.getBatteryConsumption();
+                    if (battery < 0) {
+                        System.out.println("st failed: " + i +" out of: " + serviceTripsWithCEsVertices.size());
+                        return  battery;
+                    }
+                } else {
+                    battery += (itemPrevious.getEnd() - itemPrevious.getStart() ) * ((ChargingEventVertex) itemPrevious).getChargingSpeed();
+                }
+            } else {
+                if (itemPrevious instanceof ChargingEventVertex) {
+                    battery += (itemPrevious.getEnd() - itemPrevious.getStart() ) * ((ChargingEventVertex) itemPrevious).getChargingSpeed();
+                    Edge edge = ((ServiceTripVertex) item).getEdgeForPreviousCE(((ChargingEventVertex) itemPrevious).getIndexCharger());
+                    battery -= edge.getBatteryConsumption();
+                } else {
+                    Edge edge = ((ServiceTripVertex) itemPrevious).getEdgeForSubsequentTrip(((ServiceTripVertex) item).getId());
+                    battery -= edge.getBatteryConsumption();
+                }
+                battery -= ((ServiceTripVertex) item).getConsumption();
+                if (battery < 0) {
+                    System.out.println("st failed: " + i +" out of: " + serviceTripsWithCEsVertices.size());
+                    return  battery;
+                }
+            }
+            itemPrevious = item;
+            i++;
+        }
+        ServiceTripVertex item = STsGroup.getDepoEnd();
+            if (itemPrevious instanceof ChargingEventVertex) {
+                battery += (itemPrevious.getEnd() - itemPrevious.getStart() ) * ((ChargingEventVertex) itemPrevious).getChargingSpeed();
+                Edge edge = ((ServiceTripVertex) item).getEdgeForPreviousCE(((ChargingEventVertex) itemPrevious).getIndexCharger());
+                battery -= edge.getBatteryConsumption();
+            } else {
+                Edge edge = ((ServiceTripVertex) itemPrevious).getEdgeForSubsequentTrip(((ServiceTripVertex) item).getId());
+                battery -= edge.getBatteryConsumption();
+            }
+            battery -= ((ServiceTripVertex) item).getConsumption();
+            if (battery < 0) {
+                System.out.println("st failed: " + i +" out of: " + serviceTripsWithCEsVertices.size());
+                return  battery;
+            }
+        return battery;
     }
 }

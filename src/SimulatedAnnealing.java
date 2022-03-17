@@ -84,8 +84,8 @@ public class SimulatedAnnealing {
                         }
                     }
                 }
-//                System.out.println("temp: "+ currentTemperature);
-//                System.out.println(solution.getsTsGroups().size());
+                System.out.println("temp: "+ currentTemperature);
+                System.out.println(solution.getsTsGroups().size());
                 currentTemperature /= 1 + tBeta * currentTemperature;
                 if (isAcceptedSolutionOnTemperature && currentTemperature > 0.1) {
                     shouldContinueSA = true;
@@ -96,6 +96,15 @@ public class SimulatedAnnealing {
                     System.out.println("reheating");
                 }
             } while (shouldContinueSA && System.currentTimeMillis() < endAfterTime);
+//            int i = 0;
+//        for (STsGroup group : solution.getsTsGroups()
+//             ) {
+//            double batteryValidation = group.validateGroup();
+//            if (batteryValidation < 0) {
+//                System.out.println("invalid group: "+i+" battery: "+ batteryValidation);
+//            }
+//            i++;
+//        }
             totalTime = System.currentTimeMillis();
     }
 
