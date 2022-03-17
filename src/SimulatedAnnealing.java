@@ -49,12 +49,13 @@ public class SimulatedAnnealing {
                 isAcceptedSolutionOnTemperature = false;
                 for (int q = 0; q < maxQ; q++) {
                     Solution nextSolution = solutionCurrent.findNext();
-//                    System.out.println("new solution: " + nextSolution.getVehicles().size());
-//                System.out.println("new solution: " + nextSolution);
+//                    System.out.println("new solution: " + nextSolution.getsTsGroups().size());
+//                    System.out.println("new solution: " + nextSolution);
                     if (nextSolution == null) {
                         return;
                     }
                     if (nextSolution.getsTsGroups().size() <= solutionCurrent.getsTsGroups().size()) {
+//                        System.out.println("accepted better: " + nextSolution.getsTsGroups().size());
                         if (!isAcceptedSolutionOnTemperature) {
                             isAcceptedSolutionOnTemperature = true;
                         }
@@ -72,18 +73,19 @@ public class SimulatedAnnealing {
                         );
                         double generatedValue = random.nextDouble();
                         if (generatedValue <= pAcceptNext) {
-//                            System.out.println("accepted worse: " + nextSolution.getVehicles().size());
+//                            System.out.println("accepted worse: " + nextSolution.getsTsGroups().size());
                             if (!isAcceptedSolutionOnTemperature) {
                                 isAcceptedSolutionOnTemperature = true;
                             }
                             solutionCurrent = nextSolution;
                         } else {
+//                            System.out.println("declined worse: " + nextSolution.getsTsGroups().size());
                             solutionCurrent.resetChargersForSolution();
                         }
                     }
                 }
-                System.out.println("temp: "+ currentTemperature);
-                System.out.println(solution.getsTsGroups().size());
+//                System.out.println("temp: "+ currentTemperature);
+//                System.out.println(solution.getsTsGroups().size());
                 currentTemperature /= 1 + tBeta * currentTemperature;
                 if (isAcceptedSolutionOnTemperature && currentTemperature > 0.1) {
                     shouldContinueSA = true;
