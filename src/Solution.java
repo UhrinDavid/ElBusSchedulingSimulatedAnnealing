@@ -179,30 +179,26 @@ public class Solution {
     }
 
     public String toString() {
-        StringBuilder solutionString = new StringBuilder("Solution: \n");
-        solutionString.append("Number of STsGroups used: ").append(sTsGroups.size()).append("\n");
-        solutionString.append("\n");
+        StringBuilder solutionString = new StringBuilder();
         int vehicleIndex = 1;
         for ( STsGroup STsGroup : sTsGroups) {
-            solutionString.append("STsGroup number: ").append(vehicleIndex).append("\n");
-            solutionString.append(STsGroup);
-            solutionString.append("\n");
+            solutionString.append("\n"+STsGroup);
             vehicleIndex++;
         }
-        int used = 0;
-        int free = 0;
-        for (TreeMap<Integer, ChargingEventVertex> charger:
-             chargersWithChargingEvents) {
-            for (Map.Entry<Integer, ChargingEventVertex> ce:
-                 charger.entrySet()) {
-                if (ce.getValue().isReserved()) {
-                    used++;
-                } else {
-                    free++;
-                }
-            }
-        }
-        solutionString.append("used: " + used + " free: " + free).append("\n");
+//        int used = 0;
+//        int free = 0;
+//        for (TreeMap<Integer, ChargingEventVertex> charger:
+//             chargersWithChargingEvents) {
+//            for (Map.Entry<Integer, ChargingEventVertex> ce:
+//                 charger.entrySet()) {
+//                if (ce.getValue().isReserved()) {
+//                    used++;
+//                } else {
+//                    free++;
+//                }
+//            }
+//        }
+//        solutionString.append("used: " + used + " free: " + free).append("\n");
 
         return solutionString.toString();
     }
@@ -232,16 +228,14 @@ public class Solution {
             // STsGroup to which we try to assign service trips from removedTrips
             // we keep this instance as a backup of STsGroup's STs and CEs in case we need to revert iteration
             STsGroup group = nextSolution.sTsGroups.get(indexGroup);
-//            double batteryValidation1 = group.validateGroup();
-//            if (batteryValidation1 < 0) {
-//                System.out.println("invalid group beforre insert: "+" battery: "+ batteryValidation1);
-//            }
-            STsGroup groupAfterTryInsert = group.tryInsertTrips(randomSTsGroup, nextSolution.chargersWithChargingEvents);
 
-//                double batteryValidation = groupAfterTryInsert.validateGroup();
-//                if (batteryValidation < 0) {
-//                    System.out.println("invalid group after insert: "+" battery: "+ batteryValidation);
-//                }
+            if (!group.hasAllCEsReserved()) {
+                System.out.println("unreserved before tryInsert");
+            }
+            STsGroup groupAfterTryInsert = group.tryInsertTrips(randomSTsGroup, nextSolution.chargersWithChargingEvents);
+            if (!groupAfterTryInsert.hasAllCEsReserved()) {
+                System.out.println("unreserved after tryInsert");
+            }
              if (group == groupAfterTryInsert && !isAssignedMinOneST) {
                 isAssignedMinOneST = true;
             }

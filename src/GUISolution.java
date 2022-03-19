@@ -19,13 +19,13 @@ public class GUISolution extends JFrame {
 
                     g.setColor(Color.BLACK);
                     g.setFont(new Font("Bold", 1, 10));
-                    g.drawString(""+STsGroup.getDepoStart().getId(), STsGroup.getDepoStart().getStart(), i*15+10);
+                    g.drawString(""+i, STsGroup.getDepoStart().getStart(), i*15+10);
                     g.setColor(Color.GREEN);
                     g.fillRect(STsGroup.getDepoStart().getStart(), i*15, (STsGroup.getDepoStart().getEnd() - STsGroup.getDepoStart().getStart()), 10);
 
                     g.setColor(Color.BLACK);
                     g.setFont(new Font("Bold", 1, 10));
-                    g.drawString(""+STsGroup.getDepoEnd().getId(), STsGroup.getDepoEnd().getStart(), i*15+10);
+                    g.drawString(""+i, STsGroup.getDepoEnd().getStart(), i*15+10);
                     g.setColor(Color.GREEN);
                     g.fillRect(STsGroup.getDepoEnd().getStart(), i*15, (STsGroup.getDepoEnd().getEnd() - STsGroup.getDepoEnd().getStart()), 10);
 
@@ -64,6 +64,7 @@ public class GUISolution extends JFrame {
         // set background
         c.setBackground(Color.white);
         JScrollPane scrPane = new JScrollPane(c);
+        scrPane.getViewport().addChangeListener(e -> c.repaint());
 
         this.add(scrPane);
         this.setVisible(true);

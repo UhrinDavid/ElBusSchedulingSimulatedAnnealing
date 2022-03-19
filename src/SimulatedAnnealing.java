@@ -1,9 +1,9 @@
-import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.*;
 
 public class SimulatedAnnealing {
     private Solution solution;
+    private long bestSolutionTime;
     // TODO: use random as singleton class
     private Random random;
     private boolean shouldReheat;
@@ -62,8 +62,14 @@ public class SimulatedAnnealing {
                         solutionCurrent = nextSolution;
                         if (solutionCurrent.getsTsGroups().size() < solution.getsTsGroups().size()) {
                             solution = solutionCurrent;
+                            bestSolutionTime = System.currentTimeMillis() - startTime;
                             if (!isFoundBetterSinceLastReheating) {
                                 isFoundBetterSinceLastReheating = true;
+                            }
+                        }
+                        for (STsGroup group : solutionCurrent.getsTsGroups()
+                        ) {if (!group.hasAllCEsReserved()) {
+                                System.out.println("unreserved better or equal");
                             }
                         }
                     } else {
@@ -78,34 +84,50 @@ public class SimulatedAnnealing {
                                 isAcceptedSolutionOnTemperature = true;
                             }
                             solutionCurrent = nextSolution;
+
+                            for (STsGroup group : solutionCurrent.getsTsGroups()
+                            ) {if (!group.hasAllCEsReserved()) {
+                                System.out.println("unreserved accepted worse");
+                            }
+                            }
                         } else {
 //                            System.out.println("declined worse: " + nextSolution.getsTsGroups().size());
                             solutionCurrent.resetChargersForSolution();
+
+                            for (STsGroup group : solutionCurrent.getsTsGroups()
+                            ) {if (!group.hasAllCEsReserved()) {
+                                System.out.println("unreserved declined");
+                            }
+                            }
                         }
                     }
                 }
-                System.out.println("temp: "+ currentTemperature);
-                System.out.println(solution.getsTsGroups().size());
+//                System.out.println("temp: "+ currentTemperature);
+//                System.out.println(solution.getsTsGroups().size());
                 currentTemperature /= 1 + tBeta * currentTemperature;
-                if (isAcceptedSolutionOnTemperature && currentTemperature > 0.1) {
+                if (isAcceptedSolutionOnTemperature && currentTemperature > 0.01) {
                     shouldContinueSA = true;
                 } else if (isFoundBetterSinceLastReheating && shouldReheat) {
                     currentTemperature = maxT;
                     isFoundBetterSinceLastReheating = false;
                     shouldContinueSA = true;
-                    System.out.println("reheating");
+//                    System.out.println("reheating");
                 }
             } while (shouldContinueSA && System.currentTimeMillis() < endAfterTime);
-//            int i = 0;
-//        for (STsGroup group : solution.getsTsGroups()
-//             ) {
-//            double batteryValidation = group.validateGroup();
-//            if (batteryValidation < 0) {
-//                System.out.println("invalid group: "+i+" battery: "+ batteryValidation);
-//            }
-//            i++;
-//        }
-            totalTime = System.currentTimeMillis();
+            for (STsGroup group : solution.getsTsGroups()
+            ) {
+                group.reserveAssignedCEs();
+            }
+            int i = 0;
+        for (STsGroup group : solution.getsTsGroups()
+             ) {
+            double batteryValidation = group.validateGroupBattery();
+            if (batteryValidation < 0) {
+                System.out.println("invalid group: "+i+" battery: "+ batteryValidation);
+            }
+            i++;
+        }
+            totalTime = System.currentTimeMillis() - startTime;
     }
 
     public Solution getSolution() {
@@ -114,6 +136,7 @@ public class SimulatedAnnealing {
 
     public String toString() {
 //        return "solution length: " + solution.getVehicles().size();
-        return "solution: \n" + solution + "solution length: \n" + solution.getsTsGroups().size() + "\n";
+        return  "\nsolution length: " + solution.getsTsGroups().size() + "\n" + "total time seconds: " + (totalTime / 1000.0) +"\n"
+                + "solution reached in time seconds: " + (bestSolutionTime / 1000.0) +"\n" + solution;
     }
 }

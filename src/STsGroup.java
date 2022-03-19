@@ -41,7 +41,7 @@ public class STsGroup {
 
     public String toString() {
         StringBuilder stringFinal = new StringBuilder();
-        stringFinal.append("---------\n");
+//        stringFinal.append("---------\n");
         boolean isFirst = true;
         for ( Map.Entry<Integer, STGroupVertex> serviceTripData : serviceTripsWithCEsVertices.entrySet()) {
             STGroupVertex vertex = serviceTripData.getValue();
@@ -58,7 +58,7 @@ public class STsGroup {
                         .append(chargingEventVertex.getIndexCharger()+"_"+chargingEventVertex.getIndexChargingEvent());
             }
         }
-        stringFinal.append("\n---------\n");
+//        stringFinal.append("\n---------\n");
         return stringFinal.toString();
     }
 
@@ -107,7 +107,6 @@ public class STsGroup {
                  cE = cEEntry == null ?  null : cEEntry.getValue();
                 if (cE != null && cE.getStart() + edgeCEtoST.getTimeDistance() < trip.getStart()
                         && currentBatteryState - edgeSTtoCE.getBatteryConsumption() > 0  && !cE.isReserved()) {
-//                    System.out.println("hooray");
                     final int firstInsertableCEKey = cE.getStart();
                     int lastInsertableCEKey;
                     boolean shouldCheckEventOnCharger;
@@ -230,12 +229,11 @@ public class STsGroup {
         LinkedList<STGroupVertex> removedTrips = new LinkedList<>(removedGroup.serviceTripsWithCEsVertices.values());
         TreeMap<Integer, STGroupVertex> failedToInsertList = new TreeMap<>();
         int removedTripsInitialSize = removedTrips.size();
-//        double batteryValidation5 = this.validateGroup();
-//        if (batteryValidation5 < 0) {
-//            System.out.println("invalid group tryinsert start: " + " battery: " + batteryValidation5);
-//        }
         // try to find a time window between already existing trips in vehicle,
         // we don't take capacity deficiency into account at first, only if ST can be inserted respecting time restrictions
+        if (!this.hasAllCEsReserved()) {
+            System.out.println("unreserved before insert");
+        }
 
         // trips' lists begins and ends with depo, we can insert between depo and first
         // but no after depo (therefore size - 1)
@@ -265,8 +263,7 @@ public class STsGroup {
             ) {
                 serviceTripsWithCEsVertices.put(removedTrip.getStart(), removedTrip);
                 double deficiencyAll = checkForBatteryDeficiency();
-                if (deficiencyAll < 0 && !tryChargeBetweenSTs(deficiencyAll, chargersWithChargingEvents)) {
-//                    System.out.println("failed to charge");
+                if (deficiencyAll < minBatteryCapacity && !tryChargeBetweenSTs(deficiencyAll, chargersWithChargingEvents)) {
                     serviceTripsWithCEsVertices.remove(removedTrip.getStart());
                     failedToInsertList.put(removedTrip.getStart(), removedTrip);
                     for (Map.Entry<Integer, STGroupVertex> event : cEsBackup.entrySet()) {
@@ -274,25 +271,7 @@ public class STsGroup {
                         val.setReserved(true);
                         serviceTripsWithCEsVertices.put(event.getKey(), event.getValue());
                     }
-//                    double batteryValidation = this.validateGroup();
-//                    if (batteryValidation < 0) {
-//                        System.out.println("invalid group after failed charge: "+" battery: "+ batteryValidation);
-//                    }
                 }
-                else if (deficiencyAll < 0 ) {
-//                    new GUISolution(this);
-//                    System.out.println("charged"+ this);
-//                    double batteryValidation = this.validateGroup();
-//                    if (batteryValidation < 0) {
-//                        System.out.println("invalid group after sucessfull charge: "+" battery: "+ batteryValidation);
-//                    }
-                }
-//                else if (deficiencyAll > 0) {
-//                    double batteryValidation = this.validateGroup();
-//                    if (batteryValidation < 0) {
-//                        System.out.println("invalid group after no deficiency detected: " + " battery: " + batteryValidation);
-//                    }
-//                }
             } else {
                 for (Map.Entry<Integer, STGroupVertex> event : cEsBackup.entrySet()) {
                     ChargingEventVertex val = (ChargingEventVertex) event.getValue();
@@ -300,23 +279,14 @@ public class STsGroup {
                     serviceTripsWithCEsVertices.put(event.getKey(), event.getValue());
                 }
                 failedToInsertList.put(removedTrip.getStart(), removedTrip);
-//                double batteryValidation = this.validateGroup();
-//                if (batteryValidation < 0) {
-//                    System.out.println("invalid group after non existing stst edge: "+" battery: "+ batteryValidation);
-//                }
+            }
+            if (!this.hasAllCEsReserved()) {
+                System.out.println("unreserved after insert");
             }
         }
         removedGroup.serviceTripsWithCEsVertices = failedToInsertList;
-//        double batteryValidation = this.validateGroup();
-//        if (batteryValidation < 0) {
-//            System.out.println("invalid group at tryinsert end: "+" battery: "+ batteryValidation);
-//        }
         if (failedToInsertList.size() == removedTripsInitialSize) {
-
-//            double batteryValidation1 = this.validateGroup();
-//            if (batteryValidation1 < 0) {
-//                System.out.println("invalid group backup: "+" battery: "+ batteryValidation1);
-//            }
+            backupGroup.reserveAssignedCEs();
             return  backupGroup;
         }
         return this;
@@ -351,7 +321,20 @@ public class STsGroup {
         return serviceTripsWithCEsVertices;
     }
 
-    public double validateGroup() {
+    public boolean hasAllCEsReserved () {
+        for (Map.Entry<Integer, STGroupVertex> vertex: serviceTripsWithCEsVertices.entrySet()
+        ) {
+            STGroupVertex item = vertex.getValue();
+            if (item instanceof ChargingEventVertex) {
+                if (!((ChargingEventVertex) item).isReserved()) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    public double validateGroupBattery() {
         STGroupVertex itemPrevious = STsGroup.getDepoStart();
 
         double battery = STsGroup.maxBatteryCapacity;
