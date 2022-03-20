@@ -110,7 +110,8 @@ public class SimulatedAnnealing {
             }
             i++;
         }
-            totalTime = System.currentTimeMillis() - startTime;
+         GUISolution guiSolution = new GUISolution(solution);
+        totalTime = System.currentTimeMillis() - startTime;
     }
 
     public Solution getSolution() {

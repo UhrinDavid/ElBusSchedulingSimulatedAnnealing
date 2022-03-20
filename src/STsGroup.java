@@ -92,9 +92,16 @@ public class STsGroup {
                     + trip.getConsumption();
             // find suitable CE
             // get first possible index on charger
-            Iterator<TreeMap<Integer, ChargingEventVertex>> chargerIt = chargersWithChargingEvents.iterator();
             int indexCharger = 0;
             boolean isChargedBeforeTrip = false;
+
+            LinkedList<TreeMap<Integer, ChargingEventVertex>> chargersCopy = new LinkedList<>(chargersWithChargingEvents);
+            LinkedList<TreeMap<Integer, ChargingEventVertex>> randomOrderedChargers = new LinkedList<>();
+            while (chargersCopy.size() > 0) {
+                int randomIndex = random.nextInt(chargersCopy.size());
+                randomOrderedChargers.add(chargersCopy.remove(randomIndex));
+            }
+            Iterator<TreeMap<Integer, ChargingEventVertex>> chargerIt = randomOrderedChargers.iterator();
             while (chargerIt.hasNext() && !isChargedBeforeTrip
             ) {
                 TreeMap<Integer, ChargingEventVertex> chargingEventsOnCharger = chargerIt.next();

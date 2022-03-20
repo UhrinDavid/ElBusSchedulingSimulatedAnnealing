@@ -213,6 +213,8 @@ public class Solution {
             return null;
         }
         Solution nextSolution = new Solution(this);
+
+        LinkedList<STsGroup> groupsNew = new LinkedList<>();
         // randomly choose vehicle from solution
         int randomIndex = random.nextInt(nextSolution.sTsGroups.size());
         STsGroup randomSTsGroup = nextSolution.sTsGroups.remove(randomIndex);
@@ -222,20 +224,25 @@ public class Solution {
 
         // go over other Vehicles in Solution, try to assign any ST to another STsGroup
         boolean isAssignedMinOneST = false;
-        int indexGroup = 0;
-        while (indexGroup < nextSolution.sTsGroups.size() && !randomSTsGroup.isEmpty()) {
+        int randomIndexGroup = nextSolution.random.nextInt(nextSolution.sTsGroups.size());
+        while (nextSolution.sTsGroups.size() > 0 && !randomSTsGroup.isEmpty()) {
             // STsGroup to which we try to assign service trips from removedTrips
             // we keep this instance as a backup of STsGroup's STs and CEs in case we need to revert iteration
-            STsGroup group = nextSolution.sTsGroups.get(indexGroup);
+            STsGroup group = nextSolution.sTsGroups.remove(randomIndexGroup);
 
             STsGroup groupAfterTryInsert = group.tryInsertTrips(randomSTsGroup, nextSolution.chargersWithChargingEvents);
 
              if (group == groupAfterTryInsert && !isAssignedMinOneST) {
                 isAssignedMinOneST = true;
             }
-             nextSolution.sTsGroups.set(indexGroup, groupAfterTryInsert);
-            indexGroup++;
+            groupsNew.add(groupAfterTryInsert);
+            if (nextSolution.sTsGroups.size() > 0) {
+                randomIndexGroup = nextSolution.random.nextInt(nextSolution.sTsGroups.size());
+
+            }
         }
+        nextSolution.sTsGroups = new LinkedList<>(nextSolution.sTsGroups);
+        nextSolution.sTsGroups.addAll(groupsNew);
         if (!randomSTsGroup.isEmpty()) {
             LinkedList<STsGroup> vehiclesFromRemoved = randomSTsGroup.splitRemainingTrips(isAssignedMinOneST, nextSolution.chargersWithChargingEvents);
             nextSolution.sTsGroups.addAll(vehiclesFromRemoved);
