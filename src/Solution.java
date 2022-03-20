@@ -204,7 +204,6 @@ public class Solution {
     }
 
     public Solution findNext() {
-//        System.out.println("find next: " + this.getsTsGroups().size());
         int tripsBefore = 0;
         for (STsGroup gr: sTsGroups
              ) {
@@ -229,13 +228,8 @@ public class Solution {
             // we keep this instance as a backup of STsGroup's STs and CEs in case we need to revert iteration
             STsGroup group = nextSolution.sTsGroups.get(indexGroup);
 
-            if (!group.hasAllCEsReserved()) {
-                System.out.println("unreserved before tryInsert");
-            }
             STsGroup groupAfterTryInsert = group.tryInsertTrips(randomSTsGroup, nextSolution.chargersWithChargingEvents);
-            if (!groupAfterTryInsert.hasAllCEsReserved()) {
-                System.out.println("unreserved after tryInsert");
-            }
+
              if (group == groupAfterTryInsert && !isAssignedMinOneST) {
                 isAssignedMinOneST = true;
             }

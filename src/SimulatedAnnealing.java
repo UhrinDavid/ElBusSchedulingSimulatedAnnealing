@@ -67,11 +67,6 @@ public class SimulatedAnnealing {
                                 isFoundBetterSinceLastReheating = true;
                             }
                         }
-                        for (STsGroup group : solutionCurrent.getsTsGroups()
-                        ) {if (!group.hasAllCEsReserved()) {
-                                System.out.println("unreserved better or equal");
-                            }
-                        }
                     } else {
                         double pAcceptNext = Math.exp(
                                 -((nextSolution.getsTsGroups().size() - solutionCurrent.getsTsGroups().size())
@@ -84,21 +79,9 @@ public class SimulatedAnnealing {
                                 isAcceptedSolutionOnTemperature = true;
                             }
                             solutionCurrent = nextSolution;
-
-                            for (STsGroup group : solutionCurrent.getsTsGroups()
-                            ) {if (!group.hasAllCEsReserved()) {
-                                System.out.println("unreserved accepted worse");
-                            }
-                            }
                         } else {
 //                            System.out.println("declined worse: " + nextSolution.getsTsGroups().size());
                             solutionCurrent.resetChargersForSolution();
-
-                            for (STsGroup group : solutionCurrent.getsTsGroups()
-                            ) {if (!group.hasAllCEsReserved()) {
-                                System.out.println("unreserved declined");
-                            }
-                            }
                         }
                     }
                 }

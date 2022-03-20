@@ -6,7 +6,7 @@ import java.io.IOException;
 public class MainClass {
 
     public static void main(String[] args) {
-        String[] testDatasets = {"27", "26a29", "21a22a27"};
+        String[] testDatasets = {"27", "21a22a27"};
         boolean[] shouldReheats = {true, false};
         int[] maxComputingTimeMinutes = {2,4,6,8,10};
         int[] maxTs = {1,10,100,1000,10000};
@@ -15,40 +15,40 @@ public class MainClass {
         for (String dataSet : testDatasets
              ) {
             int i = 0;
-//            runSimulation(dataSet, true, 100, 10, 0.1, 1, "baseSetting__");
+            runSimulation(dataSet, true, 100, 10, 0.1, 1, "baseSetting__");
 
-            for (boolean shouldReheatVal : shouldReheats
-            ) {
-                runSimulation(dataSet, shouldReheatVal, 300, 10, 0.9, 100, "shouldReheats_"+shouldReheatVal);
-                i++;
-            }
-            i = 0;
-            for (int maxTime : maxComputingTimeMinutes
-            ) {
-                runSimulation(dataSet, true, maxTime*60, 10, 0.9, 100, "maxComputingTimeMinutes_"+maxTime);
-                i++;
-            }
-            i = 0;
-            for (int maxT : maxTs
-            ) {
-                runSimulation(dataSet, true, 300, maxT, 0.9, 100, "maxTs_"+maxT);
-
-                i++;
-            }
-            i = 0;
-            for (double tBeta : tBetas
-            ) {
-                runSimulation(dataSet, true, 300, 10, tBeta, 100, "tBetas_"+tBeta);
-
-                i++;
-            }
-            i = 0;
-            for (int maxQ : maxQs
-            ) {
-                runSimulation(dataSet, true, 300, 10, 0.9, maxQ, "maxQs_"+maxQ);
-
-                i++;
-            }
+//            for (boolean shouldReheatVal : shouldReheats
+//            ) {
+//                runSimulation(dataSet, shouldReheatVal, 300, 10, 0.9, 100, "shouldReheats_"+shouldReheatVal);
+//                i++;
+//            }
+//            i = 0;
+//            for (int maxTime : maxComputingTimeMinutes
+//            ) {
+//                runSimulation(dataSet, true, maxTime*60, 10, 0.9, 100, "maxComputingTimeMinutes_"+maxTime);
+//                i++;
+//            }
+//            i = 0;
+//            for (int maxT : maxTs
+//            ) {
+//                runSimulation(dataSet, true, 300, maxT, 0.9, 100, "maxTs_"+maxT);
+//
+//                i++;
+//            }
+//            i = 0;
+//            for (double tBeta : tBetas
+//            ) {
+//                runSimulation(dataSet, true, 300, 10, tBeta, 100, "tBetas_"+tBeta);
+//
+//                i++;
+//            }
+//            i = 0;
+//            for (int maxQ : maxQs
+//            ) {
+//                runSimulation(dataSet, true, 300, 10, 0.9, maxQ, "maxQs_"+maxQ);
+//
+//                i++;
+//            }
         }
 
 //        runSimulation("26a29_Z", true, 600, 100, 0.1, 1000);

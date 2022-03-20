@@ -231,9 +231,7 @@ public class STsGroup {
         int removedTripsInitialSize = removedTrips.size();
         // try to find a time window between already existing trips in vehicle,
         // we don't take capacity deficiency into account at first, only if ST can be inserted respecting time restrictions
-        if (!this.hasAllCEsReserved()) {
-            System.out.println("unreserved before insert");
-        }
+
 
         // trips' lists begins and ends with depo, we can insert between depo and first
         // but no after depo (therefore size - 1)
@@ -279,9 +277,6 @@ public class STsGroup {
                     serviceTripsWithCEsVertices.put(event.getKey(), event.getValue());
                 }
                 failedToInsertList.put(removedTrip.getStart(), removedTrip);
-            }
-            if (!this.hasAllCEsReserved()) {
-                System.out.println("unreserved after insert");
             }
         }
         removedGroup.serviceTripsWithCEsVertices = failedToInsertList;
