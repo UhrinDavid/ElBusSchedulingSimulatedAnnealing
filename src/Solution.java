@@ -5,6 +5,7 @@ import java.util.*;
 public class Solution {
     private LinkedList<STsGroup> sTsGroups;
     private LinkedList<TreeMap<Integer, ChargingEventVertex>> chargersWithChargingEvents;
+    private int tripsNr;
     private Random random;
 
     public Solution(String fileTrips, String fileChargers,
@@ -15,6 +16,7 @@ public class Solution {
         LinkedList<ServiceTripData> serviceTripData;
         LinkedList<ChargingEventData> chargingEventData = ChargingEventData.createChargingEvents(fileChargers);
         serviceTripData = ServiceTripData.loadServiceTripsFromFile(fileTrips);
+        tripsNr = serviceTripData.size() - 2;
 
         // ServiceTripData to ServiceTripData matrix
         Scanner scannerTij = new Scanner(new File(fileTimeSTToST));
@@ -158,6 +160,7 @@ public class Solution {
             sTsGroups.add(new STsGroup(STsGroup));
         }
         chargersWithChargingEvents = solution.chargersWithChargingEvents;
+        tripsNr = solution.tripsNr;
         this.random = new Random();
     }
 
@@ -176,20 +179,36 @@ public class Solution {
     }
 
     public String toString() {
-        StringBuilder solutionString = new StringBuilder("Solution: \n");
-        solutionString.append("Number of STsGroups used: ").append(sTsGroups.size()).append("\n");
-        solutionString.append("\n");
+        StringBuilder solutionString = new StringBuilder();
         int vehicleIndex = 1;
         for ( STsGroup STsGroup : sTsGroups) {
-            solutionString.append("STsGroup number: ").append(vehicleIndex).append("\n");
-            solutionString.append(STsGroup);
-            solutionString.append("\n");
+            solutionString.append("\n"+STsGroup);
             vehicleIndex++;
         }
+//        int used = 0;
+//        int free = 0;
+//        for (TreeMap<Integer, ChargingEventVertex> charger:
+//             chargersWithChargingEvents) {
+//            for (Map.Entry<Integer, ChargingEventVertex> ce:
+//                 charger.entrySet()) {
+//                if (ce.getValue().isReserved()) {
+//                    used++;
+//                } else {
+//                    free++;
+//                }
+//            }
+//        }
+//        solutionString.append("used: " + used + " free: " + free).append("\n");
+
         return solutionString.toString();
     }
 
     public Solution findNext() {
+        int tripsBefore = 0;
+        for (STsGroup gr: sTsGroups
+             ) {
+            tripsBefore += gr.getNrTrips();
+        }
         if (this.sTsGroups.size() == 1) {
             return null;
         }
@@ -209,7 +228,8 @@ public class Solution {
             // we keep this instance as a backup of STsGroup's STs and CEs in case we need to revert iteration
             STsGroup group = nextSolution.sTsGroups.get(indexGroup);
 
-            STsGroup groupAfterTryInsert = group.tryInsertTrips(randomSTsGroup, chargersWithChargingEvents);
+            STsGroup groupAfterTryInsert = group.tryInsertTrips(randomSTsGroup, nextSolution.chargersWithChargingEvents);
+
              if (group == groupAfterTryInsert && !isAssignedMinOneST) {
                 isAssignedMinOneST = true;
             }
@@ -217,8 +237,19 @@ public class Solution {
             indexGroup++;
         }
         if (!randomSTsGroup.isEmpty()) {
-            LinkedList<STsGroup> vehiclesFromRemoved = randomSTsGroup.splitRemainingTrips(isAssignedMinOneST, chargersWithChargingEvents);
+            LinkedList<STsGroup> vehiclesFromRemoved = randomSTsGroup.splitRemainingTrips(isAssignedMinOneST, nextSolution.chargersWithChargingEvents);
             nextSolution.sTsGroups.addAll(vehiclesFromRemoved);
+        }
+
+        int tripsAfter = 0;
+        for (STsGroup gr: nextSolution.sTsGroups
+        ) {
+            tripsAfter += gr.getNrTrips();
+        }
+        if (tripsAfter != tripsBefore) {
+            System.out.println("trips before: " + tripsBefore+" trips after: "+tripsAfter);
+        }if (tripsAfter != nextSolution.tripsNr) {
+            System.out.println("tripsNr: " + nextSolution.tripsNr+" trips after: "+tripsAfter);
         }
         return nextSolution;
     }
