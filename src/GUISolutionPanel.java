@@ -2,7 +2,7 @@ import javax.swing.*;
 
 public class GUISolutionPanel extends JPanel {
 
-    private Solution solution;
+    private final Solution solution;
 
     public GUISolutionPanel(Solution solution) {
         this.solution = solution;

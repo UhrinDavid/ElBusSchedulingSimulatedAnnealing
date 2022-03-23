@@ -4,9 +4,9 @@ import java.util.*;
 
 public class Solution {
     private LinkedList<STsGroup> sTsGroups;
-    private LinkedList<TreeMap<Integer, ChargingEventVertex>> chargersWithChargingEvents;
-    private int tripsNr;
-    private Random random;
+    private final LinkedList<TreeMap<Integer, ChargingEventVertex>> chargersWithChargingEvents;
+    private final int tripsNr;
+    private final Random random;
 
     public Solution(String fileTrips, String fileChargers,
                     String fileEnergySTToST, String fileEnergySTToCE, String fileEnergyCEToST, String fileTimeSTToST,
@@ -128,17 +128,17 @@ public class Solution {
             TreeMap<Integer, Edge> edgesSubsequentTrips = new TreeMap<>();
             LinkedList<Edge> edgesSubsequentCes = new LinkedList<>();
             LinkedList<Edge> edgesPreviousCes = new LinkedList<>();
+
+            for (int k = 0; k < chargersWithChargingEvents.size(); k++) {
+                edgesPreviousCes.add(matrixCEtoST[k][tripIndex]);
+                edgesSubsequentCes.add(matrixSTtoCE[tripIndex][k]);
+            }
             for (int j = 0; j < serviceTripData.size(); j++) {
                 if (matrixSTtoST[tripIndex][j] != null && trip.getStart() < serviceTripData.get(j).getStart()) {
                     edgesSubsequentTrips.put(serviceTripData.get(j).getId(), matrixSTtoST[tripIndex][j]);
                 }
                 if (matrixSTtoST[j][tripIndex] != null && trip.getStart() < serviceTripData.get(j).getStart()) {
                     edgesSubsequentTrips.put(serviceTripData.get(j).getId(), matrixSTtoST[tripIndex][j]);
-                }
-
-                for (int k = 0; k < chargersWithChargingEvents.size(); k++) {
-                    edgesPreviousCes.add(matrixCEtoST[k][tripIndex]);
-                    edgesSubsequentCes.add(matrixSTtoCE[tripIndex][k]);
                 }
             }
 
@@ -214,37 +214,37 @@ public class Solution {
         }
         Solution nextSolution = new Solution(this);
 
-        LinkedList<STsGroup> groupsNew = new LinkedList<>();
         // randomly choose vehicle from solution
         int randomIndex = random.nextInt(nextSolution.sTsGroups.size());
         STsGroup randomSTsGroup = nextSolution.sTsGroups.remove(randomIndex);
-
         // release vehicle's CEs
         randomSTsGroup.releaseChargingEvents();
+//        System.out.println(randomSTsGroup);
+        LinkedList<STGroupVertex> randomGroupTrips = new LinkedList<STGroupVertex>(randomSTsGroup.getServiceTripsWithCEsVertices().values());
+        LinkedList<STGroupVertex> leftoverTrips = new LinkedList<>();
 
         // go over other Vehicles in Solution, try to assign any ST to another STsGroup
-        boolean isAssignedMinOneST = false;
-        int randomIndexGroup = nextSolution.random.nextInt(nextSolution.sTsGroups.size());
-        while (nextSolution.sTsGroups.size() > 0 && !randomSTsGroup.isEmpty()) {
-            // STsGroup to which we try to assign service trips from removedTrips
-            // we keep this instance as a backup of STsGroup's STs and CEs in case we need to revert iteration
-            STsGroup group = nextSolution.sTsGroups.remove(randomIndexGroup);
-
-            STsGroup groupAfterTryInsert = group.tryInsertTrips(randomSTsGroup, nextSolution.chargersWithChargingEvents);
-
-             if (group == groupAfterTryInsert && !isAssignedMinOneST) {
-                isAssignedMinOneST = true;
-            }
-            groupsNew.add(groupAfterTryInsert);
-            if (nextSolution.sTsGroups.size() > 0) {
-                randomIndexGroup = nextSolution.random.nextInt(nextSolution.sTsGroups.size());
-
+        while (!randomGroupTrips.isEmpty()) {
+            Collections.shuffle(nextSolution.sTsGroups);
+            Iterator<STsGroup> groupsIt = nextSolution.sTsGroups.iterator();
+            boolean isInserted = false;
+            ServiceTripVertex removedTrip = (ServiceTripVertex) randomGroupTrips.remove(0);
+            while (groupsIt.hasNext() && !isInserted) {
+                STsGroup groupNext = groupsIt.next();
+                ServiceTripVertex returnedTrip = groupNext.tryInsertOrExchangeTrip(
+                        removedTrip , nextSolution.chargersWithChargingEvents);
+                if (removedTrip != returnedTrip) {
+                    isInserted = true;
+                    if (returnedTrip != null) {
+                        leftoverTrips.add(returnedTrip);
+                    }
+                } else if (!groupsIt.hasNext()) {
+                    leftoverTrips.add(returnedTrip);
+                }
             }
         }
-        nextSolution.sTsGroups = new LinkedList<>(nextSolution.sTsGroups);
-        nextSolution.sTsGroups.addAll(groupsNew);
         if (!randomSTsGroup.isEmpty()) {
-            LinkedList<STsGroup> vehiclesFromRemoved = randomSTsGroup.splitRemainingTrips(isAssignedMinOneST, nextSolution.chargersWithChargingEvents);
+            LinkedList<STsGroup> vehiclesFromRemoved = randomSTsGroup.splitRemainingTrips(leftoverTrips, nextSolution.chargersWithChargingEvents);
             nextSolution.sTsGroups.addAll(vehiclesFromRemoved);
         }
 

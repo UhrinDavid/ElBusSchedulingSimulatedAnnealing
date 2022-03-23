@@ -3,7 +3,7 @@ import java.io.FileNotFoundException;
 import java.util.Scanner;
 
 public class MatrixEdges {
-    private Edge[][] edges;
+    private final Edge[][] edges;
 
     private MatrixEdges(String filenameTimeDistance, String filenameBatteryConsumption) throws FileNotFoundException {
         Scanner scannerTimeDistance = new Scanner(new File(filenameTimeDistance));

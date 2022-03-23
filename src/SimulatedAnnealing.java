@@ -5,17 +5,17 @@ public class SimulatedAnnealing {
     private Solution solution;
     private long bestSolutionTime;
     // TODO: use random as singleton class
-    private Random random;
-    private boolean shouldReheat;
-    private int maxComputingTimeSeconds;
+    private final Random random;
+    private final boolean shouldReheat;
+    private final int maxComputingTimeSeconds;
     private long totalTime;
 
     //starting temperature
-    private double maxT;
+    private final double maxT;
     //temperature modifier
-    private double tBeta;
+    private final double tBeta;
     //max iterations at given temperature
-    private int maxQ;
+    private final int maxQ;
 
     public SimulatedAnnealing(boolean shouldReheat, int maxComputingTimeSeconds, double maxT, double tBeta, int maxQ, String fileTrips, String fileChargers,
                               String fileEnergySTToST, String fileEnergySTToCE, String fileEnergyCEToST, String fileTimeSTToST,
@@ -85,8 +85,8 @@ public class SimulatedAnnealing {
                         }
                     }
                 }
-//                System.out.println("temp: "+ currentTemperature);
-//                System.out.println(solution.getsTsGroups().size());
+                System.out.println("temp: "+ currentTemperature);
+                System.out.println(solution.getsTsGroups().size());
                 currentTemperature /= 1 + tBeta * currentTemperature;
                 if (isAcceptedSolutionOnTemperature && currentTemperature > 0.01) {
                     shouldContinueSA = true;
