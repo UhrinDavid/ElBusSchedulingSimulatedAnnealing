@@ -232,18 +232,26 @@ public class Solution {
             while (groupsIt.hasNext() && !isInserted) {
                 STsGroup groupNext = groupsIt.next();
                 ServiceTripVertex returnedTrip = groupNext.tryInsertOrExchangeTrip(
-                        removedTrip , nextSolution.chargersWithChargingEvents);
+                        removedTrip , nextSolution.chargersWithChargingEvents, true);
                 if (removedTrip != returnedTrip) {
                     isInserted = true;
                     if (returnedTrip != null) {
-                        leftoverTrips.add(returnedTrip);
+                        Iterator<STsGroup> groupsIt2 = nextSolution.sTsGroups.iterator();
+                        while (returnedTrip != null && groupsIt2.hasNext()) {
+                            returnedTrip = groupsIt2.next().tryInsertOrExchangeTrip(
+                                    returnedTrip , nextSolution.chargersWithChargingEvents, false);
+                        }
+                        if (returnedTrip != null) {
+                            leftoverTrips.add(returnedTrip);
+                        }
                     }
                 } else if (!groupsIt.hasNext()) {
                     leftoverTrips.add(returnedTrip);
                 }
             }
         }
-        if (!randomSTsGroup.isEmpty()) {
+
+        if (!leftoverTrips.isEmpty()) {
             LinkedList<STsGroup> vehiclesFromRemoved = randomSTsGroup.splitRemainingTrips(leftoverTrips, nextSolution.chargersWithChargingEvents);
             nextSolution.sTsGroups.addAll(vehiclesFromRemoved);
         }

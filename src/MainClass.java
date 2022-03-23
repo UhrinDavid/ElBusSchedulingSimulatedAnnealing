@@ -6,10 +6,10 @@ import java.io.IOException;
 public class MainClass {
 
     public static void main(String[] args) {
-        String dataSet = "26";
+        String dataSet = "AllZa";
         SimulatedAnnealing saAlgorithm = null;
         try {
-            saAlgorithm = new SimulatedAnnealing(true, 600, 100, 0.1, 100,
+            saAlgorithm = new SimulatedAnnealing(true, 600, 100, 0.9, 100,
                     "./src/DatasetsNew/spoje_id_" + dataSet + "_Z.csv",
                     "./src/DatasetsNew/ChEvents_" + dataSet + "_Z.csv",
                     "./src/DatasetsNew/Cij_" + dataSet + "_Z.csv",

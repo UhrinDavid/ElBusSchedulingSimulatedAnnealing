@@ -88,7 +88,7 @@ public class SimulatedAnnealing {
                 System.out.println("temp: "+ currentTemperature);
                 System.out.println(solution.getsTsGroups().size());
                 currentTemperature /= 1 + tBeta * currentTemperature;
-                if (isAcceptedSolutionOnTemperature && currentTemperature > 0.01) {
+                if (isAcceptedSolutionOnTemperature && currentTemperature > 0.000001) {
                     shouldContinueSA = true;
                 } else if (isFoundBetterSinceLastReheating && shouldReheat) {
                     currentTemperature = maxT;
