@@ -220,34 +220,28 @@ public class Solution {
         // release vehicle's CEs
         randomSTsGroup.releaseChargingEvents();
 //        System.out.println(randomSTsGroup);
-        LinkedList<STGroupVertex> randomGroupTrips = new LinkedList<STGroupVertex>(randomSTsGroup.getServiceTripsWithCEsVertices().values());
+        LinkedList<STGroupVertex> randomGroupTrips = new LinkedList<>(randomSTsGroup.getServiceTripsWithCEsVertices().values());
         LinkedList<STGroupVertex> leftoverTrips = new LinkedList<>();
 
         // go over other Vehicles in Solution, try to assign any ST to another STsGroup
         while (!randomGroupTrips.isEmpty()) {
-            Collections.shuffle(nextSolution.sTsGroups);
-            Iterator<STsGroup> groupsIt = nextSolution.sTsGroups.iterator();
-            boolean isInserted = false;
             ServiceTripVertex removedTrip = (ServiceTripVertex) randomGroupTrips.remove(0);
-            while (groupsIt.hasNext() && !isInserted) {
-                STsGroup groupNext = groupsIt.next();
-                ServiceTripVertex returnedTrip = groupNext.tryInsertOrExchangeTrip(
-                        removedTrip , nextSolution.chargersWithChargingEvents, true);
-                if (removedTrip != returnedTrip) {
-                    isInserted = true;
-                    if (returnedTrip != null) {
-                        Iterator<STsGroup> groupsIt2 = nextSolution.sTsGroups.iterator();
-                        while (returnedTrip != null && groupsIt2.hasNext()) {
-                            returnedTrip = groupsIt2.next().tryInsertOrExchangeTrip(
-                                    returnedTrip , nextSolution.chargersWithChargingEvents, false);
-                        }
-                        if (returnedTrip != null) {
-                            leftoverTrips.add(returnedTrip);
-                        }
+            STsGroup randomGroup = nextSolution.sTsGroups.get(random.nextInt(nextSolution.sTsGroups.size()));
+            ServiceTripVertex returnedTrip = randomGroup.tryInsertOrReplaceTrip(
+                    removedTrip , nextSolution.chargersWithChargingEvents, true);
+            if (removedTrip != returnedTrip) {
+                if (returnedTrip != null) {
+                    Iterator<STsGroup> groupsIt2 = nextSolution.sTsGroups.iterator();
+                    while (returnedTrip != null && groupsIt2.hasNext()) {
+                        returnedTrip = groupsIt2.next().tryInsertOrReplaceTrip(
+                                returnedTrip , nextSolution.chargersWithChargingEvents, false);
                     }
-                } else if (!groupsIt.hasNext()) {
-                    leftoverTrips.add(returnedTrip);
+                    if (returnedTrip != null) {
+                        leftoverTrips.add(returnedTrip);
+                    }
                 }
+            } else {
+                leftoverTrips.add(returnedTrip);
             }
         }
 

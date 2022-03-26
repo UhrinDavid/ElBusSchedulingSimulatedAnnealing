@@ -220,7 +220,7 @@ public class STsGroup {
         return trips;
     }
 
-    public ServiceTripVertex tryInsertOrExchangeTrip(ServiceTripVertex trip, LinkedList<TreeMap<Integer, ChargingEventVertex>> chargersWithChargingEvents, boolean tryReplace) {
+    public ServiceTripVertex tryInsertOrReplaceTrip(ServiceTripVertex trip, LinkedList<TreeMap<Integer, ChargingEventVertex>> chargersWithChargingEvents, boolean tryReplace) {
         TreeMap<Integer, STGroupVertex> cEsBackup = new TreeMap<>();
         Iterator<Map.Entry<Integer, STGroupVertex>> vertexIt = this.serviceTripsWithCEsVertices.entrySet().iterator();
         while (vertexIt.hasNext()) {
