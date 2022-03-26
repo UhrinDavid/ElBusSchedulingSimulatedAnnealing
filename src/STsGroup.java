@@ -1,7 +1,8 @@
 import java.util.*;
 
 public class STsGroup {
-    private TreeMap<Integer, STGroupVertex> serviceTripsWithCEsVertices;
+    private TreeMap<Integer, ServiceTripVertex> assignedServiceTrips;
+    private TreeMap<Integer, ChargingEventVertex> assignedChargingEvents;
     final static double maxBatteryCapacity = 140;
     final static double minBatteryCapacity = 0;
     static private ServiceTripVertex depoStart = null;
@@ -29,13 +30,15 @@ public class STsGroup {
     }
 
     public STsGroup(ServiceTripVertex initialServiceTrip) {
-        serviceTripsWithCEsVertices = new TreeMap<>();
-        this.serviceTripsWithCEsVertices.put(initialServiceTrip.getStart(), initialServiceTrip);
+        assignedServiceTrips = new TreeMap<>();
+        this.assignedServiceTrips.put(initialServiceTrip.getStart(), initialServiceTrip);
+        assignedChargingEvents = new TreeMap<>();
         this.random = new Random();
     }
 
     public STsGroup(STsGroup sTsGroup) {
-        serviceTripsWithCEsVertices = new TreeMap<>(sTsGroup.serviceTripsWithCEsVertices);
+        assignedServiceTrips = new TreeMap<>(sTsGroup.assignedServiceTrips);
+        assignedChargingEvents = new TreeMap<>(sTsGroup.assignedChargingEvents);
         this.random = sTsGroup.random;
     }
 
@@ -43,7 +46,10 @@ public class STsGroup {
         StringBuilder stringFinal = new StringBuilder();
 //        stringFinal.append("---------\n");
         boolean isFirst = true;
-        for (Map.Entry<Integer, STGroupVertex> serviceTripData : serviceTripsWithCEsVertices.entrySet()) {
+        TreeMap<Integer, STGroupVertex> finalGroupSequence = new TreeMap<>(assignedServiceTrips);
+        finalGroupSequence.putAll(assignedChargingEvents);
+
+        for (Map.Entry<Integer, STGroupVertex> serviceTripData : finalGroupSequence.entrySet()) {
             STGroupVertex vertex = serviceTripData.getValue();
             if (isFirst) {
                 isFirst = false;
@@ -67,9 +73,9 @@ public class STsGroup {
         double deficiencyAll = STsGroup.maxBatteryCapacity;
         ServiceTripVertex tripPrevious = STsGroup.getDepoStart();
         // create deficiency structure
-        for (Map.Entry<Integer, STGroupVertex> tripEntry : serviceTripsWithCEsVertices.entrySet()
+        for (Map.Entry<Integer, ServiceTripVertex> tripEntry : assignedServiceTrips.entrySet()
         ) {
-            ServiceTripVertex trip = (ServiceTripVertex) tripEntry.getValue();
+            ServiceTripVertex trip = tripEntry.getValue();
             deficiencyAll -= tripPrevious.getEdgeForSubsequentTrip(trip.getId()).getBatteryConsumption()
                     + trip.getConsumption();
             tripPrevious = trip;
@@ -84,7 +90,7 @@ public class STsGroup {
         double deficiencyLeft = deficiencyAll;
         double currentBatteryState = STsGroup.maxBatteryCapacity;
         TreeMap<Integer, ChargingEventVertex> usedEvents = new TreeMap<>();
-        ServiceTripVertex trip = (ServiceTripVertex) serviceTripsWithCEsVertices.firstEntry().getValue();
+        ServiceTripVertex trip = assignedServiceTrips.firstEntry().getValue();
         ServiceTripVertex tripPrevious = STsGroup.getDepoStart();
         do {
             final Edge edgeSTtoST = tripPrevious.getEdgeForSubsequentTrip(trip.getId());
@@ -169,8 +175,8 @@ public class STsGroup {
                 }
             }
             tripPrevious = trip;
-            Map.Entry<Integer, STGroupVertex> nextVertex = serviceTripsWithCEsVertices.higherEntry(trip.getStart());
-            trip = nextVertex == null ? STsGroup.getDepoEnd() : (ServiceTripVertex) nextVertex.getValue();
+            Map.Entry<Integer, ServiceTripVertex> nextVertex = assignedServiceTrips.higherEntry(trip.getStart());
+            trip = nextVertex == null ? STsGroup.getDepoEnd() : nextVertex.getValue();
         } while (deficiencyLeft < 0 && tripPrevious != STsGroup.getDepoEnd());
 
         if (deficiencyLeft < 0) {
@@ -180,192 +186,120 @@ public class STsGroup {
             }
             return false;
         }
-        this.serviceTripsWithCEsVertices.putAll(usedEvents);
+        this.assignedChargingEvents.putAll(usedEvents);
         return true;
     }
 
-    public void releaseChargingEvents() {
-        Iterator<Map.Entry<Integer, STGroupVertex>> vertexIt = this.serviceTripsWithCEsVertices.entrySet().iterator();
+    private void unreserveChargingEvents() {
+        Iterator<Map.Entry<Integer, ChargingEventVertex>> vertexIt = this.assignedChargingEvents.entrySet().iterator();
         while (vertexIt.hasNext()) {
-            Map.Entry<Integer, STGroupVertex> vertex = vertexIt.next();
-            if (vertex.getValue() instanceof ChargingEventVertex) {
-                ChargingEventVertex vertexCE = (ChargingEventVertex) vertex.getValue();
-                vertexIt.remove();
-                vertexCE.setReserved(false);
-            }
+            Map.Entry<Integer, ChargingEventVertex> vertex = vertexIt.next();
+            ChargingEventVertex vertexCE = vertex.getValue();
+            vertexIt.remove();
+            vertexCE.setReserved(false);
         }
     }
 
-    public boolean isEmpty() {
-        return serviceTripsWithCEsVertices.isEmpty();
+    public void releaseChargingEvents() {
+        unreserveChargingEvents();
+        assignedChargingEvents.clear();
     }
 
     public void reserveAssignedCEs() {
-        for (Map.Entry<Integer, STGroupVertex> vertex : serviceTripsWithCEsVertices.entrySet()
+        for (Map.Entry<Integer, ChargingEventVertex> vertex : assignedChargingEvents.entrySet()
         ) {
-            if (vertex.getValue() instanceof ChargingEventVertex) {
-                ((ChargingEventVertex) vertex.getValue()).setReserved(true);
-            }
+            vertex.getValue().setReserved(true);
         }
+    }
+
+    private TreeMap<Integer, ChargingEventVertex> createAssignedCEsBackup() {
+        return new TreeMap<>(assignedChargingEvents);
+    }
+
+    private void assignAndReserveCEsFromBackup(TreeMap<Integer, ChargingEventVertex> cEsBackup) {
+        assignedChargingEvents = new TreeMap<>(cEsBackup);
+        reserveAssignedCEs();
     }
 
     public int getNrTrips() {
-        int trips = 0;
-        for (Map.Entry<Integer, STGroupVertex> vertex : serviceTripsWithCEsVertices.entrySet()
-        ) {
-            if (vertex.getValue() instanceof ServiceTripVertex) {
-                trips++;
-            }
-        }
-        return trips;
+        return assignedServiceTrips.size();
     }
 
     public ServiceTripVertex tryInsertOrReplaceTrip(ServiceTripVertex trip, LinkedList<TreeMap<Integer, ChargingEventVertex>> chargersWithChargingEvents, boolean tryReplace) {
-        TreeMap<Integer, STGroupVertex> cEsBackup = new TreeMap<>();
-        Iterator<Map.Entry<Integer, STGroupVertex>> vertexIt = this.serviceTripsWithCEsVertices.entrySet().iterator();
-        while (vertexIt.hasNext()) {
-            Map.Entry<Integer, STGroupVertex> vertex = vertexIt.next();
-            if (vertex.getValue() instanceof ChargingEventVertex) {
-                ChargingEventVertex vertexCE = (ChargingEventVertex) vertex.getValue();
-                cEsBackup.put(vertex.getKey(), vertex.getValue());
-                vertexIt.remove();
-                vertexCE.setReserved(false);
-            }
-        }
-        Map.Entry<Integer, STGroupVertex> vertexBefore = serviceTripsWithCEsVertices
+        Map.Entry<Integer, ServiceTripVertex> vertexBefore = assignedServiceTrips
                 .floorEntry(trip.getStart());
-        ServiceTripVertex tripBefore = vertexBefore == null ? STsGroup.getDepoStart() : (ServiceTripVertex) vertexBefore.getValue();
-        Map.Entry<Integer, STGroupVertex> vertexAfter = serviceTripsWithCEsVertices
+        ServiceTripVertex tripBefore = vertexBefore == null ? STsGroup.getDepoStart() : vertexBefore.getValue();
+        Map.Entry<Integer, ServiceTripVertex> vertexAfter = assignedServiceTrips
                 .ceilingEntry(tripBefore.getEnd());
-        ServiceTripVertex tripAfter = vertexAfter == null ? STsGroup.getDepoEnd() : (ServiceTripVertex) vertexAfter.getValue();
+        ServiceTripVertex tripAfter = vertexAfter == null ? STsGroup.getDepoEnd() : vertexAfter.getValue();
         if (
                 tripBefore.getEdgeForSubsequentTrip(trip.getId()) != null
                         && trip.getEdgeForSubsequentTrip(tripAfter.getId()) != null
         ) {
-            serviceTripsWithCEsVertices.put(trip.getStart(), trip);
+            unreserveChargingEvents();
+            TreeMap<Integer, ChargingEventVertex> assignedCEsBackup = createAssignedCEsBackup();
+            assignedServiceTrips.put(trip.getStart(), trip);
             double deficiencyAll = checkForBatteryDeficiency();
             if (deficiencyAll < minBatteryCapacity && !tryChargeBetweenSTs(deficiencyAll, chargersWithChargingEvents)) {
-                serviceTripsWithCEsVertices.remove(trip.getStart());
-                for (Map.Entry<Integer, STGroupVertex> event : cEsBackup.entrySet()) {
-                    ChargingEventVertex val = (ChargingEventVertex) event.getValue();
-                    val.setReserved(true);
-                    serviceTripsWithCEsVertices.put(event.getKey(), event.getValue());
-                }
+                assignedServiceTrips.remove(trip.getStart());
+                assignAndReserveCEsFromBackup(assignedCEsBackup);
                 return trip;
             } else {
                 return null;
             }
         } else if (tryReplace && tripBefore.getEdgeForSubsequentTrip(trip.getId()) != null
                 && trip.getEdgeForSubsequentTrip(tripAfter.getId()) == null
-                && serviceTripsWithCEsVertices
+                && assignedServiceTrips
                 .higherEntry(tripAfter.getStart()) != null
-                && trip.getEdgeForSubsequentTrip(((ServiceTripVertex) serviceTripsWithCEsVertices
-                .higherEntry(tripAfter.getStart()).getValue()).getId()) != null) {
-            return tryReplaceTrip(trip, chargersWithChargingEvents, cEsBackup, tripAfter);
+                && trip.getEdgeForSubsequentTrip(assignedServiceTrips
+                .higherEntry(tripAfter.getStart()).getValue().getId()) != null) {
+            return tryReplaceTrip(trip, chargersWithChargingEvents, tripAfter);
         }else if (tryReplace && tripBefore.getEdgeForSubsequentTrip(trip.getId()) == null
                 && trip.getEdgeForSubsequentTrip(tripAfter.getId()) != null
-                && serviceTripsWithCEsVertices
+                && assignedServiceTrips
                 .lowerEntry(tripBefore.getStart()) != null
-                && trip.getEdgeForSubsequentTrip(((ServiceTripVertex) serviceTripsWithCEsVertices
-                .lowerEntry(tripBefore.getStart()).getValue()).getId()) != null) {
-            return tryReplaceTrip(trip, chargersWithChargingEvents, cEsBackup, tripBefore);
+                && trip.getEdgeForSubsequentTrip(assignedServiceTrips
+                .lowerEntry(tripBefore.getStart()).getValue().getId()) != null) {
+            return tryReplaceTrip(trip, chargersWithChargingEvents, tripBefore);
         } else {
-            for (Map.Entry<Integer, STGroupVertex> event : cEsBackup.entrySet()) {
-                ChargingEventVertex val = (ChargingEventVertex) event.getValue();
-                val.setReserved(true);
-                serviceTripsWithCEsVertices.put(event.getKey(), event.getValue());
-            }
             return trip;
         }
     }
 
-    private ServiceTripVertex tryReplaceTrip(ServiceTripVertex tripToInsert, LinkedList<TreeMap<Integer, ChargingEventVertex>> chargersWithChargingEvents, TreeMap<Integer, STGroupVertex> cEsBackup, ServiceTripVertex tripToReplace) {
-        serviceTripsWithCEsVertices.remove(tripToReplace.getStart());
-
-        serviceTripsWithCEsVertices.put(tripToInsert.getStart(), tripToInsert);
+    private ServiceTripVertex tryReplaceTrip(ServiceTripVertex tripToInsert, LinkedList<TreeMap<Integer, ChargingEventVertex>> chargersWithChargingEvents, ServiceTripVertex tripToReplace) {
+        unreserveChargingEvents();
+        TreeMap<Integer, ChargingEventVertex> assignedCEsBackup = createAssignedCEsBackup();
+        assignedServiceTrips.remove(tripToReplace.getStart());
+        assignedServiceTrips.put(tripToInsert.getStart(), tripToInsert);
         double deficiencyAll = checkForBatteryDeficiency();
         if (deficiencyAll < minBatteryCapacity && !tryChargeBetweenSTs(deficiencyAll, chargersWithChargingEvents)) {
-            serviceTripsWithCEsVertices.remove(tripToInsert.getStart());
-            serviceTripsWithCEsVertices.put(tripToReplace.getStart(), tripToReplace);
-            for (Map.Entry<Integer, STGroupVertex> event : cEsBackup.entrySet()) {
-                ChargingEventVertex val = (ChargingEventVertex) event.getValue();
-                val.setReserved(true);
-                serviceTripsWithCEsVertices.put(event.getKey(), event.getValue());
-            }
+            assignedServiceTrips.remove(tripToInsert.getStart());
+            assignedServiceTrips.put(tripToReplace.getStart(), tripToReplace);
+            assignAndReserveCEsFromBackup(assignedCEsBackup);
             return tripToInsert;
         } else {
             return tripToReplace;
         }
     }
 
-    public LinkedList<STGroupVertex> tryInsertTrips(LinkedList<STGroupVertex> removedTrips, LinkedList<TreeMap<Integer, ChargingEventVertex>> chargersWithChargingEvents) {
-        // backup of current state of removedTrips from vehicle we try to eliminate from the solution - in case we need to revert iteration
-        LinkedList<STGroupVertex> failedToInsertList = new LinkedList<>();
-        int removedTripsInitialSize = removedTrips.size();
-        // try to find a time window between already existing trips in vehicle,
-        // we don't take capacity deficiency into account at first, only if ST can be inserted respecting time restrictions
-
-        boolean isAtLeast1Insert = false;
-        // trips' lists begins and ends with depo, we can insert between depo and first
-        // but no after depo (therefore size - 1)
+    public LinkedList<ServiceTripVertex> tryInsertTrips(LinkedList<ServiceTripVertex> removedTrips, LinkedList<TreeMap<Integer, ChargingEventVertex>> chargersWithChargingEvents) {
+        LinkedList<ServiceTripVertex> failedToInsertList = new LinkedList<>();
         while (removedTrips.size() > 0) {
             final int randomIndex = random.nextInt(removedTrips.size());
-            ServiceTripVertex removedTrip = (ServiceTripVertex) removedTrips.remove(randomIndex);
-            TreeMap<Integer,STGroupVertex> cEsBackup = new TreeMap<>();
-            Iterator<Map.Entry<Integer, STGroupVertex>> vertexIt = this.serviceTripsWithCEsVertices.entrySet().iterator();
-            while (vertexIt.hasNext()){
-                Map.Entry<Integer, STGroupVertex> vertex = vertexIt.next();
-                if (vertex.getValue() instanceof ChargingEventVertex) {
-                    ChargingEventVertex vertexCE = (ChargingEventVertex) vertex.getValue();
-                    cEsBackup.put(vertex.getKey(), vertex.getValue());
-                    vertexIt.remove();
-                    vertexCE.setReserved(false);
-                }
-            }
-            Map.Entry<Integer, STGroupVertex> vertexBefore = serviceTripsWithCEsVertices
-                    .floorEntry(removedTrip.getStart());
-            ServiceTripVertex tripBefore = vertexBefore == null ? STsGroup.getDepoStart() : (ServiceTripVertex) vertexBefore.getValue();
-            Map.Entry<Integer, STGroupVertex> vertexAfter = serviceTripsWithCEsVertices
-                    .ceilingEntry(tripBefore.getEnd());
-            ServiceTripVertex tripAfter = vertexAfter == null ? STsGroup.getDepoEnd() : (ServiceTripVertex) vertexAfter.getValue();
-            if (
-                    tripBefore.getEdgeForSubsequentTrip(removedTrip.getId()) != null
-                            && removedTrip.getEdgeForSubsequentTrip(tripAfter.getId()) != null
-            ) {
-                serviceTripsWithCEsVertices.put(removedTrip.getStart(), removedTrip);
-                double deficiencyAll = checkForBatteryDeficiency();
-                if (deficiencyAll < minBatteryCapacity && !tryChargeBetweenSTs(deficiencyAll, chargersWithChargingEvents)) {
-                    serviceTripsWithCEsVertices.remove(removedTrip.getStart());
-                    failedToInsertList.add(removedTrip);
-                    for (Map.Entry<Integer, STGroupVertex> event : cEsBackup.entrySet()) {
-                        ChargingEventVertex val = (ChargingEventVertex) event.getValue();
-                        val.setReserved(true);
-                        serviceTripsWithCEsVertices.put(event.getKey(), event.getValue());
-                    }
-                } else {
-                    if (!isAtLeast1Insert) {
-                        isAtLeast1Insert = true;
-                    }
-                }
-            }
-            else {
-                for (Map.Entry<Integer, STGroupVertex> event : cEsBackup.entrySet()) {
-                    ChargingEventVertex val = (ChargingEventVertex) event.getValue();
-                    val.setReserved(true);
-                    serviceTripsWithCEsVertices.put(event.getKey(), event.getValue());
-                }
+            ServiceTripVertex removedTrip = removedTrips.remove(randomIndex);
+            ServiceTripVertex returnedFromInsert = tryInsertOrReplaceTrip(removedTrip, chargersWithChargingEvents, false);
+            if (returnedFromInsert != null) {
                 failedToInsertList.add(removedTrip);
             }
         }
         return failedToInsertList;
     }
 
-    public static LinkedList<STsGroup> splitRemainingTrips(LinkedList<STGroupVertex> trips,
+    public static LinkedList<STsGroup> splitRemainingTrips(LinkedList<ServiceTripVertex> trips,
                                                     LinkedList<TreeMap<Integer, ChargingEventVertex>> chargersWithChargingEvents) {
         LinkedList<STsGroup> vehiclesFromRemoved = new LinkedList<>();
-        // place first trip from removed to new vehicle, try to assign trips
         while (!trips.isEmpty()) {
-            STsGroup STsGroupFromRemoved = new STsGroup((ServiceTripVertex) trips.remove(0));
+            STsGroup STsGroupFromRemoved = new STsGroup(trips.remove(0));
             if (!trips.isEmpty()) {
                 trips = STsGroupFromRemoved.tryInsertTrips(trips, chargersWithChargingEvents);
             }
@@ -375,17 +309,21 @@ public class STsGroup {
     }
 
     public TreeMap<Integer, STGroupVertex> getServiceTripsWithCEsVertices() {
-        return new TreeMap<>(serviceTripsWithCEsVertices);
+        TreeMap<Integer, STGroupVertex> sequence = new TreeMap<>(assignedServiceTrips);
+        sequence.putAll(assignedChargingEvents);
+        return sequence;
+    }
+
+    public TreeMap<Integer, ServiceTripVertex> getServiceTrips() {
+        return new TreeMap<>(assignedServiceTrips);
     }
 
     public boolean hasAllCEsReserved() {
-        for (Map.Entry<Integer, STGroupVertex> vertex : serviceTripsWithCEsVertices.entrySet()
+        for (Map.Entry<Integer, ChargingEventVertex> vertex : assignedChargingEvents.entrySet()
         ) {
-            STGroupVertex item = vertex.getValue();
-            if (item instanceof ChargingEventVertex) {
-                if (!((ChargingEventVertex) item).isReserved()) {
-                    return false;
-                }
+            ChargingEventVertex item = vertex.getValue();
+            if (!item.isReserved()) {
+                return false;
             }
         }
         return true;
@@ -393,7 +331,8 @@ public class STsGroup {
 
     public double validateGroupBattery() {
         STGroupVertex itemPrevious = STsGroup.getDepoStart();
-
+        TreeMap<Integer, STGroupVertex> serviceTripsWithCEsVertices = new TreeMap<>(assignedServiceTrips);
+        serviceTripsWithCEsVertices.putAll(assignedChargingEvents);
         double battery = STsGroup.maxBatteryCapacity;
         int i = 0;
         for (Map.Entry<Integer, STGroupVertex> vertex : serviceTripsWithCEsVertices.entrySet()

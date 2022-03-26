@@ -220,15 +220,15 @@ public class Solution {
         // release vehicle's CEs
         randomSTsGroup.releaseChargingEvents();
 //        System.out.println(randomSTsGroup);
-        LinkedList<STGroupVertex> randomGroupTrips = new LinkedList<>(randomSTsGroup.getServiceTripsWithCEsVertices().values());
-        LinkedList<STGroupVertex> leftoverTrips = new LinkedList<>();
+        LinkedList<ServiceTripVertex> randomGroupTrips = new LinkedList<>(randomSTsGroup.getServiceTrips().values());
+        LinkedList<ServiceTripVertex> leftoverTrips = new LinkedList<>();
 
         // go over other Vehicles in Solution, try to assign any ST to another STsGroup
         while (!randomGroupTrips.isEmpty()) {
-            ServiceTripVertex removedTrip = (ServiceTripVertex) randomGroupTrips.remove(0);
+            ServiceTripVertex removedTrip = randomGroupTrips.remove(0);
             STsGroup randomGroup = nextSolution.sTsGroups.get(random.nextInt(nextSolution.sTsGroups.size()));
             ServiceTripVertex returnedTrip = randomGroup.tryInsertOrReplaceTrip(
-                    removedTrip , nextSolution.chargersWithChargingEvents, true);
+                    removedTrip, nextSolution.chargersWithChargingEvents, true);
             if (removedTrip != returnedTrip) {
                 if (returnedTrip != null) {
                     Iterator<STsGroup> groupsIt2 = nextSolution.sTsGroups.iterator();
