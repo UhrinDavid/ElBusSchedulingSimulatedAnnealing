@@ -97,11 +97,12 @@ public class SimulatedAnnealing {
 //                    System.out.println("reheating");
                 }
             } while (shouldContinueSA && System.currentTimeMillis() < endAfterTime);
-            for (STsGroup group : solution.getsTsGroups()
-            ) {
-                group.reserveAssignedCEs();
-            }
-            int i = 0;
+        totalTime = System.currentTimeMillis() - startTime;
+        for (STsGroup group : solution.getsTsGroups()
+        ) {
+            group.reserveAssignedCEs();
+        }
+        int i = 0;
         for (STsGroup group : solution.getsTsGroups()
              ) {
             double batteryValidation = group.validateGroupBattery();
