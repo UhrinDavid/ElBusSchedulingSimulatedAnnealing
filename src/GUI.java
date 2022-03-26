@@ -6,15 +6,15 @@ import java.io.FileNotFoundException;
 
 public class GUI extends JFrame implements ActionListener {
 
-    private JPanel startPanel;
+    private final JPanel startPanel;
 
-    private JTextField tFDSPrefix;
-    private JTextField tFStartingTemperature;
-    private JTextField tFTemperatureBeta;
-    private JTextField tFIterationsAtTemp;
-    private JButton startButton;
+    private final JTextField tFDSPrefix;
+    private final JTextField tFStartingTemperature;
+    private final JTextField tFTemperatureBeta;
+    private final JTextField tFIterationsAtTemp;
+    private final JButton startButton;
 
-    private SimulatedAnnealing saAlgorithm = null;
+    private final SimulatedAnnealing saAlgorithm = null;
 
     public GUI() {
         super("Electric bus scheduling - Simulated Annealing.");

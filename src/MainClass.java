@@ -6,16 +6,34 @@ import java.io.IOException;
 public class MainClass {
 
     public static void main(String[] args) {
-        String[] testDatasets = {"27", "21a22a27"};
-        boolean[] shouldReheats = {true, false};
-        int[] maxComputingTimeMinutes = {2,4,6,8,10};
-        int[] maxTs = {1,10,100,1000,10000};
-        double[] tBetas = {0.9, 0.1, 0.01, 0.001};
-        int[] maxQs = {1, 10, 100, 1000, 10000};
-        for (String dataSet : testDatasets
-             ) {
-            int i = 0;
-            runSimulation(dataSet, true, 100, 10, 0.1, 1, "baseSetting__");
+        String dataSet = "AllZa";
+        SimulatedAnnealing saAlgorithm = null;
+        try {
+            saAlgorithm = new SimulatedAnnealing(true, 600, 100, 0.9, 100,
+                    "./src/DatasetsNew/spoje_id_" + dataSet + "_Z.csv",
+                    "./src/DatasetsNew/ChEvents_" + dataSet + "_Z.csv",
+                    "./src/DatasetsNew/Cij_" + dataSet + "_Z.csv",
+                    "./src/DatasetsNew/Cir_" + dataSet + "_Z.csv",
+                    "./src/DatasetsNew/Cri_" + dataSet + "_Z.csv",
+                    "./src/DatasetsNew/Tij_" + dataSet + "_Z.csv",
+                    "./src/DatasetsNew/Tir_" + dataSet + "_Z.csv",
+                    "./src/DatasetsNew/Tri_" + dataSet + "_Z.csv"
+            );
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+        saAlgorithm.runSimulatedAnnealing();
+            System.out.println(saAlgorithm);
+//        String[] testDatasets = {"27", "21a22a27"};
+//        boolean[] shouldReheats = {true, false};
+//        int[] maxComputingTimeMinutes = {2,4,6,8,10};
+//        int[] maxTs = {1,10,100,1000,10000};
+//        double[] tBetas = {0.9, 0.1, 0.01, 0.001};
+//        int[] maxQs = {1, 10, 100, 1000, 10000};
+//        for (String dataSet : testDatasets
+//             ) {
+//            int i = 0;
+//            runSimulation(dataSet, true, 100, 10, 0.1, 1, "baseSetting__");
 
 //            for (boolean shouldReheatVal : shouldReheats
 //            ) {
@@ -49,7 +67,7 @@ public class MainClass {
 //
 //                i++;
 //            }
-        }
+//        }
 
 //        runSimulation("26a29_Z", true, 600, 100, 0.1, 1000);
     }
@@ -69,7 +87,7 @@ public class MainClass {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        for (int i = 0; i < 10; i++) {
+        for (int i = 0; i < 1; i++) {
             System.out.println("replication: "+i);
             SimulatedAnnealing saAlgorithm = null;
             try {
