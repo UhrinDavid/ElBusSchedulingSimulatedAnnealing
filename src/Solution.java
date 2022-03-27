@@ -224,19 +224,6 @@ public class Solution {
         TreeMap<Integer, ServiceTripVertex> randomGroupTrips = randomSTsGroup.getServiceTrips();
         LinkedList<ServiceTripVertex> leftoverTrips = new LinkedList<>();
 
-        // force insert on 1 random
-//        while (!randomGroupTrips.isEmpty()) {
-//            Collections.shuffle(nextSolution.sTsGroups);
-//            ServiceTripVertex removedTrip = randomGroupTrips.remove(0);
-//            STsGroup randomGroup = nextSolution.sTsGroups.get(random.nextInt(nextSolution.sTsGroups.size()));
-//            LinkedList<ServiceTripVertex> returnedTrips = randomGroup.tryInsertOrReplaceTrip(
-//                    removedTrip, nextSolution.chargersWithChargingEvents, true);
-//            if (returnedTrips != null) {
-//                leftoverTrips.addAll(returnedTrips);
-//            }
-//        }
-
-//        Collections.shuffle(nextSolution.sTsGroups);
         // force insert on all
 //        while (!randomGroupTrips.isEmpty()) {
             Collections.shuffle(nextSolution.sTsGroups);
