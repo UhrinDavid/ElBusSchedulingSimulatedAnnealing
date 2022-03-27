@@ -262,10 +262,7 @@ public class STsGroup {
         TreeMap<Integer, ChargingEventVertex> assignedCEsBackup = createAssignedCEsBackup();
         releaseChargingEvents();
         if (tripsToReplace != null) {
-//            System.out.println("size replace: " + tripsToReplace.size());
-//            System.out.println("size before remove: " + assignedServiceTrips.size());
             assignedServiceTrips.entrySet().removeAll(tripsToReplace.entrySet());
-//            System.out.println("size after remove: " + assignedServiceTrips.size());
         }
         assignedServiceTrips.putAll(tripsToInsert);
         double deficiencyAll = checkForBatteryDeficiency();
