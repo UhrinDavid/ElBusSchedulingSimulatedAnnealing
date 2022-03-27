@@ -88,7 +88,7 @@ public class SimulatedAnnealing {
                 System.out.println("temp: "+ currentTemperature);
                 System.out.println(solution.getsTsGroups().size());
                 currentTemperature /= 1 + tBeta * currentTemperature;
-                if (isAcceptedSolutionOnTemperature && currentTemperature > 0.000001) {
+                if (isAcceptedSolutionOnTemperature && currentTemperature > 0.001) {
                     shouldContinueSA = true;
                 } else if (isFoundBetterSinceLastReheating && shouldReheat) {
                     currentTemperature = maxT;
@@ -105,14 +105,13 @@ public class SimulatedAnnealing {
         int i = 0;
         for (STsGroup group : solution.getsTsGroups()
              ) {
-            double batteryValidation = group.validateGroupBattery();
+            double batteryValidation = group.validateGroupBatteryState();
             if (batteryValidation < 0) {
                 System.out.println("invalid group: "+i+" battery: "+ batteryValidation);
             }
             i++;
         }
          GUISolution guiSolution = new GUISolution(solution);
-        totalTime = System.currentTimeMillis() - startTime;
     }
 
     public Solution getSolution() {
