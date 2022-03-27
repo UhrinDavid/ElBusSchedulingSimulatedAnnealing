@@ -238,14 +238,10 @@ public class Solution {
 
 //        Collections.shuffle(nextSolution.sTsGroups);
         // force insert on all
-        while (!randomGroupTrips.isEmpty()) {
+//        while (!randomGroupTrips.isEmpty()) {
             Collections.shuffle(nextSolution.sTsGroups);
             Iterator<STsGroup> groupsIt = nextSolution.sTsGroups.iterator();
             boolean isInserted = false;
-//            int rangeLower = randomGroupTrips.lastKey() - randomGroupTrips.firstKey();
-//            int lowerKey = random.nextInt(rangeLower+1) + randomGroupTrips.firstKey();
-//            int rangeHigher = randomGroupTrips.lastKey() - lowerKey;
-//            int higherKey = random.nextInt(rangeHigher +1) + lowerKey;
             ArrayList<Integer> keys = new ArrayList<>(randomGroupTrips.keySet());
             int lowerKey = random.nextInt(keys.size());
             int higherKey = random.nextInt(keys.size() - lowerKey) + lowerKey;
@@ -260,17 +256,13 @@ public class Solution {
                     isInserted = true;
                 } else if (returnedTrips != removedTrips) {
                     isInserted = true;
-//                    Collections.shuffle(nextSolution.sTsGroups);
-//                    Iterator<STsGroup> groupIt = nextSolution.sTsGroups.iterator();
-//                    while (!returnedTrips.isEmpty() && groupIt.hasNext()) {
-//                        returnedTrips = groupIt.next().tryInsertTrips(returnedTrips, nextSolution.chargersWithChargingEvents);
-//                    }
                     leftoverTrips.addAll(returnedTrips.values());
                 } else if (!groupsIt.hasNext()) {
                     leftoverTrips.addAll(removedTrips.values());
                 }
             }
-        }
+//        }
+        leftoverTrips.addAll(randomGroupTrips.values());
         Collections.shuffle(nextSolution.sTsGroups);
         Iterator<STsGroup> groupIt = nextSolution.sTsGroups.iterator();
         while (!leftoverTrips.isEmpty() && groupIt.hasNext()) {
