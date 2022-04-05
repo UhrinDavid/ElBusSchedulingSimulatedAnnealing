@@ -167,6 +167,7 @@ public class GUI extends JFrame implements ActionListener {
         int iterationsOnTemperature = Integer.parseInt(tFPIterationsOnTemperature.getInputValue());
         String resultPath = fCPResultPath.getSelectedPath();
         String resultFileName = tFPResultFilename.getInputValue();
+        String resultFinalPath = resultPath + "/" + resultFileName + RESULT_FILE_TYPE;
         try {
             SimulatedAnnealing.runSimulation(
                     reheat, maxComputingTimeSeconds, maxTemperature,
@@ -179,7 +180,7 @@ public class GUI extends JFrame implements ActionListener {
                     fileNameTripToTripTime,
                     fileNameTripToChargingEventTime,
                     fileNameChargingEventToTripTime,
-                    resultPath + resultFileName + RESULT_FILE_TYPE
+                    resultFinalPath
             );
         } catch (FileNotFoundException exception) {
             JOptionPane.showMessageDialog(null, exception.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
