@@ -115,7 +115,9 @@ public class SimulatedAnnealing {
             }
             i++;
         }
-         GUISolution guiSolution = new GUISolution(solution);
+//        new Thread(() -> {
+//         GUISolution guiSolution = new GUISolution(solution);
+//        }).start();
     }
 
     public Solution getSolution() {
