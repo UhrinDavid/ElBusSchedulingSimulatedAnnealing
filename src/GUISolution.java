@@ -6,7 +6,6 @@ public class GUISolution extends JFrame {
 
     public GUISolution(Solution solution) {
         super("Electric bus scheduling - Simulated Annealing, Solution.");
-        this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         this.setSize(500,500);
         Canvas c = new Canvas() {
             // paint the canvas

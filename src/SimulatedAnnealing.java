@@ -1,10 +1,14 @@
+import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.*;
 
 public class SimulatedAnnealing {
+    private static final int REPLICATIONS = 2;
+
     private Solution solution;
     private long bestSolutionTime;
-    // TODO: use random as singleton class
     private final Random random;
     private final boolean shouldReheat;
     private final int maxComputingTimeSeconds;
@@ -111,7 +115,9 @@ public class SimulatedAnnealing {
             }
             i++;
         }
-         GUISolution guiSolution = new GUISolution(solution);
+//        new Thread(() -> {
+//         GUISolution guiSolution = new GUISolution(solution);
+//        }).start();
     }
 
     public Solution getSolution() {
@@ -122,5 +128,51 @@ public class SimulatedAnnealing {
 //        return "solution length: " + solution.getVehicles().size();
         return  "\nsolution length: " + solution.getsTsGroups().size() + "\n" + "total time seconds: " + (totalTime / 1000.0) +"\n"
                 + "solution reached in time seconds: " + (bestSolutionTime / 1000.0) +"\n" + solution;
+    }
+
+    public static void runSimulation(boolean shouldReheat, int maxComputingTimeSeconds, double maxT, double tBeta, int maxQ, String fileTrips, String fileChargers,
+                                     String fileEnergySTToST, String fileEnergySTToCE, String fileEnergyCEToST, String fileTimeSTToST,
+                                     String fileTimeSTToCE, String fileTimeCEToST, String resultFileName) throws FileNotFoundException {
+        System.out.println("\n\nstarting new run ");
+        File file = new File(resultFileName);
+        try {
+            file.createNewFile();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        FileWriter myWriter = null;
+        try {
+            myWriter = new FileWriter(resultFileName);
+            myWriter.write("shouldReheat: "+shouldReheat+" maxComputingTimeSeconds: " + maxComputingTimeSeconds + " maxT: " + maxT + " tBeta: " + tBeta + " maxQ: " + maxQ);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        for (int i = 0; i < REPLICATIONS; i++) {
+            System.out.println("replication: "+i);
+            SimulatedAnnealing saAlgorithm = null;
+            saAlgorithm = new SimulatedAnnealing(shouldReheat, maxComputingTimeSeconds, maxT, tBeta, maxQ,
+                    fileTrips,
+                    fileChargers,
+                    fileEnergySTToST,
+                    fileEnergySTToCE,
+                    fileEnergyCEToST,
+                    fileTimeSTToST,
+                    fileTimeSTToCE,
+                    fileTimeCEToST
+            );
+            saAlgorithm.runSimulatedAnnealing();
+//            System.out.println(saAlgorithm);
+            try {
+                myWriter.write("\n\nReplication nr.: " + (i + 1));
+                myWriter.write(String.valueOf(saAlgorithm));
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        try {
+            myWriter.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }
