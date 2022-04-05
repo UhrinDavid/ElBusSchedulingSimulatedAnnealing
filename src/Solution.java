@@ -75,7 +75,7 @@ public class Solution {
             for (int j = 0; j < matrixNumberOfRows; j++) {
                 int timeDistance = Integer.parseInt(rowScannerTir.next());
                 double batteryConsumption = Double.parseDouble(rowScannerCir.next());
-                    matrixSTtoCE[i][j] = new Edge(timeDistance, batteryConsumption);
+                matrixSTtoCE[i][j] = new Edge(timeDistance, batteryConsumption);
             }
             rowScannerTir.close();
             rowScannerCir.close();
@@ -115,7 +115,7 @@ public class Solution {
 
         this.chargersWithChargingEvents = new LinkedList<>();
         for (ChargingEventData cE: chargingEventData
-             ) {
+        ) {
             if (chargersWithChargingEvents.size() <= cE.getIndexCharger()) {
                 TreeMap<Integer, ChargingEventVertex> newCharger = new TreeMap<>();
                 chargersWithChargingEvents.add(newCharger);
@@ -166,15 +166,15 @@ public class Solution {
 
     public void resetChargersForSolution() {
         for (TreeMap<Integer, ChargingEventVertex> charger : chargersWithChargingEvents
-             ) {
+        ) {
             for (Map.Entry<Integer, ChargingEventVertex> cE: charger.entrySet()
-                 ) {
+            ) {
                 cE.getValue().setReserved(false);
             }
         }
         for (STsGroup gr : sTsGroups
-             ) {
-           gr.reserveAssignedCEs();
+        ) {
+            gr.reserveAssignedCEs();
         }
     }
 
@@ -188,9 +188,9 @@ public class Solution {
         int used = 0;
         int free = 0;
         for (TreeMap<Integer, ChargingEventVertex> charger:
-             chargersWithChargingEvents) {
+                chargersWithChargingEvents) {
             for (Map.Entry<Integer, ChargingEventVertex> ce:
-                 charger.entrySet()) {
+                    charger.entrySet()) {
                 if (ce.getValue().isReserved()) {
                     used++;
                 } else {
@@ -206,7 +206,7 @@ public class Solution {
     public Solution findNext() {
         int tripsBefore = 0;
         for (STsGroup gr: sTsGroups
-             ) {
+        ) {
             tripsBefore += gr.getNrTrips();
         }
         if (this.sTsGroups.size() == 1) {
@@ -220,36 +220,47 @@ public class Solution {
         // release vehicle's CEs
         randomSTsGroup.releaseChargingEvents();
 //        System.out.println(randomSTsGroup);
-
-        TreeMap<Integer, ServiceTripVertex> randomGroupTrips = randomSTsGroup.getServiceTrips();
+        LinkedList<ServiceTripVertex> randomGroupTrips = new LinkedList<>(randomSTsGroup.getServiceTrips().values());
         LinkedList<ServiceTripVertex> leftoverTrips = new LinkedList<>();
 
-        // force insert on all
+        // force insert on 1 random
 //        while (!randomGroupTrips.isEmpty()) {
+//            Collections.shuffle(nextSolution.sTsGroups);
+//            ServiceTripVertex removedTrip = randomGroupTrips.remove(0);
+//            STsGroup randomGroup = nextSolution.sTsGroups.get(random.nextInt(nextSolution.sTsGroups.size()));
+//            LinkedList<ServiceTripVertex> returnedTrips = randomGroup.tryInsertOrReplaceTrip(
+//                    removedTrip, nextSolution.chargersWithChargingEvents, true);
+//            if (returnedTrips != null) {
+//                leftoverTrips.addAll(returnedTrips);
+//            }
+//        }
+
+//        Collections.shuffle(nextSolution.sTsGroups);
+        // force insert on all
+        while (!randomGroupTrips.isEmpty()) {
             Collections.shuffle(nextSolution.sTsGroups);
             Iterator<STsGroup> groupsIt = nextSolution.sTsGroups.iterator();
             boolean isInserted = false;
-            ArrayList<Integer> keys = new ArrayList<>(randomGroupTrips.keySet());
-            int lowerKey = random.nextInt(keys.size());
-            int higherKey = random.nextInt(keys.size() - lowerKey) + lowerKey;
-            NavigableMap <Integer, ServiceTripVertex> subMap = randomGroupTrips.subMap(keys.get(lowerKey), true, keys.get(higherKey), true);
-            TreeMap<Integer, ServiceTripVertex>  removedTrips = new TreeMap<>(subMap);
-            randomGroupTrips.entrySet().removeAll(removedTrips.entrySet());
+            ServiceTripVertex removedTrip = randomGroupTrips.remove(0);
             while (groupsIt.hasNext() && !isInserted) {
                 STsGroup groupNext = groupsIt.next();
-                TreeMap<Integer, ServiceTripVertex> returnedTrips = groupNext.tryInsertOrReplaceTrip(
-                        removedTrips , nextSolution.chargersWithChargingEvents, true);
+                LinkedList<ServiceTripVertex> returnedTrips = groupNext.tryInsertOrReplaceTrip(
+                        removedTrip, nextSolution.chargersWithChargingEvents, true);
                 if (returnedTrips == null) {
                     isInserted = true;
-                } else if (returnedTrips != removedTrips) {
+                } else if (!returnedTrips.isEmpty() && returnedTrips.get(0) != removedTrip) {
                     isInserted = true;
-                    leftoverTrips.addAll(returnedTrips.values());
+//                    Collections.shuffle(nextSolution.sTsGroups);
+//                    Iterator<STsGroup> groupIt = nextSolution.sTsGroups.iterator();
+//                    while (!returnedTrips.isEmpty() && groupIt.hasNext()) {
+//                        returnedTrips = groupIt.next().tryInsertTrips(returnedTrips, nextSolution.chargersWithChargingEvents);
+//                    }
+                    leftoverTrips.addAll(returnedTrips);
                 } else if (!groupsIt.hasNext()) {
-                    leftoverTrips.addAll(removedTrips.values());
+                    leftoverTrips.add(removedTrip);
                 }
             }
-//        }
-        leftoverTrips.addAll(randomGroupTrips.values());
+        }
         Collections.shuffle(nextSolution.sTsGroups);
         Iterator<STsGroup> groupIt = nextSolution.sTsGroups.iterator();
         while (!leftoverTrips.isEmpty() && groupIt.hasNext()) {
