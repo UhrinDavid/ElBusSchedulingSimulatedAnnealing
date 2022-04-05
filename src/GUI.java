@@ -179,7 +179,7 @@ public class GUI extends JFrame implements ActionListener {
                     fileNameTripToTripTime,
                     fileNameTripToChargingEventTime,
                     fileNameChargingEventToTripTime,
-                    resultPath + resultFileName + RESULT_FILE_TYPE
+                    resultPath + "/" + resultFileName + RESULT_FILE_TYPE
             );
         } catch (FileNotFoundException exception) {
             JOptionPane.showMessageDialog(null, exception.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
