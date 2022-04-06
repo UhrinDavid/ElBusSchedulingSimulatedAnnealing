@@ -9,10 +9,11 @@ import java.nio.file.Path;
 
 public class GUI extends JFrame implements ActionListener {
     private static final String WINDOW_TITLE = "Electric bus scheduling - Simulated Annealing.";
-    private static final int WINDOW_WIDTH = 500;
-    private static final int WINDOW_HEIGHT = 800;
+    private static final int WINDOW_WIDTH = 700;
+    private static final int WINDOW_HEIGHT = 600;
     private static final int ELEMENT_GAP = 10;
-    private static final int BORDER = 10;
+    private static final int BUTTON_START_HEIGHT = 30;
+    private static final int BUTTON_START_WIDTH = 200;
 
     private static final String DATASET_LABEL = "Dataset";
     private static final String PARAMETERS_LABEL = "Parameters";
@@ -86,10 +87,10 @@ public class GUI extends JFrame implements ActionListener {
         }
 
         this.startPanel = new JPanel();
-        this.startPanel.setLayout(new BoxLayout(startPanel, BoxLayout.Y_AXIS));
-        this.startPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
-        this.startPanel.setAlignmentY(Component.LEFT_ALIGNMENT);
-        this.startPanel.setBorder(BorderFactory.createEmptyBorder(BORDER, BORDER, BORDER, BORDER));
+        this.startPanel.setLayout(new GridBagLayout());
+        GridBagConstraints gbCons = new GridBagConstraints();
+        gbCons.insets = new Insets(ELEMENT_GAP, ELEMENT_GAP, ELEMENT_GAP, ELEMENT_GAP);
+        gbCons.anchor = GridBagConstraints.FIRST_LINE_START;
 
         fCPTrips = new FileChooserPanel(TRIPS);
         fCPChargingEvents = new FileChooserPanel(CHARGING_EVENTS);
@@ -117,36 +118,53 @@ public class GUI extends JFrame implements ActionListener {
         startButton.setBackground(Color.GREEN);
         startButton.setBorderPainted(false);
         startButton.setEnabled(enabledStartButton);
+        startButton.setPreferredSize(new Dimension(BUTTON_START_WIDTH, BUTTON_START_HEIGHT));
 
-        addToStartPanel(new InputGroupLabelPanel(DATASET_LABEL));
-        addToStartPanel(fCPTrips);
-        addToStartPanel(fCPChargingEvents);
-        addToStartPanel(fCPTripToTripTime);
-        addToStartPanel(fCPTripToTripConsumption);
-        addToStartPanel(fCPTripToChargingEventTime);
-        addToStartPanel(fCPTripToChargingEventConsumption);
-        addToStartPanel(fCPChargingEventToTripTime);
-        addToStartPanel(fCPChargingEventToTripConsumption);
-        addToStartPanel(new InputGroupLabelPanel(PARAMETERS_LABEL));
-        addToStartPanel(tFPMaxComputingTimeMinutes);
-        addToStartPanel(tFPMaxTemperature);
-        addToStartPanel(tFPModificatorTemperature);
-        addToStartPanel(tFPIterationsOnTemperature);
-        addToStartPanel(cBReheat);
-        addToStartPanel(new InputGroupLabelPanel(RESULT_LABEL));
-        addToStartPanel(fCPResultPath);
-        addToStartPanel(tFPResultFilename);
-        addToStartPanel(startButton);
+        JPanel datasetPanel = new JPanel();
+        datasetPanel.setLayout(new GridLayout(0, 1, ELEMENT_GAP, ELEMENT_GAP));
+        datasetPanel.add(new InputGroupLabelPanel(DATASET_LABEL));
+        datasetPanel.add(fCPTrips);
+        datasetPanel.add(fCPChargingEvents);
+        datasetPanel.add(fCPTripToTripTime);
+        datasetPanel.add(fCPTripToTripConsumption);
+        datasetPanel.add(fCPTripToChargingEventTime);
+        datasetPanel.add(fCPTripToChargingEventConsumption);
+        datasetPanel.add(fCPChargingEventToTripTime);
+        datasetPanel.add(fCPChargingEventToTripConsumption);
+        JPanel parametersPanel = new JPanel();
+        parametersPanel.setLayout(new GridLayout(0, 1, ELEMENT_GAP, ELEMENT_GAP));
+        parametersPanel.add(new InputGroupLabelPanel(PARAMETERS_LABEL));
+        parametersPanel.add(tFPMaxComputingTimeMinutes);
+        parametersPanel.add(tFPMaxTemperature);
+        parametersPanel.add(tFPModificatorTemperature);
+        parametersPanel.add(tFPIterationsOnTemperature);
+        parametersPanel.add(cBReheat);
+        JPanel resultsPanel = new JPanel();
+        resultsPanel.setLayout(new GridLayout(0, 1, ELEMENT_GAP, ELEMENT_GAP));
+        resultsPanel.add(new InputGroupLabelPanel(RESULT_LABEL));
+        resultsPanel.add(fCPResultPath);
+        resultsPanel.add(tFPResultFilename);
+
+        gbCons.gridx = 0;
+        gbCons.gridy = 0;
+        this.startPanel.add(parametersPanel, gbCons);
+        gbCons.gridy = 1;
+        gbCons.gridx = 0;
+        this.startPanel.add(resultsPanel, gbCons);
+        gbCons.gridy = 0;
+        gbCons.gridx = 1;
+        gbCons.gridheight = 2;
+        this.startPanel.add(datasetPanel, gbCons);
+        gbCons.gridy = 2;
+        gbCons.gridx = 0;
+        gbCons.gridwidth = 2;
+        gbCons.anchor = GridBagConstraints.PAGE_END;
+        this.startPanel.add(startButton, gbCons);
 
         ScrollPane scrollPane = new ScrollPane();
         scrollPane.add(startPanel);
         this.add(scrollPane);
         this.setVisible(true);
-    }
-
-    private void addToStartPanel(Component comp) {
-        this.startPanel.add(Box.createRigidArea(new Dimension(0, ELEMENT_GAP)));
-        this.startPanel.add(comp);
     }
 
     @Override
@@ -182,10 +200,11 @@ public class GUI extends JFrame implements ActionListener {
                     fileNameChargingEventToTripTime,
                     resultFinalPath
             );
+            JOptionPane.showMessageDialog(this, FINISHED_RUN_MESSAGE);
         } catch (FileNotFoundException exception) {
             JOptionPane.showMessageDialog(null, exception.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        } finally {
+            enabledStartButton = true;
         }
-        JOptionPane.showMessageDialog(this, FINISHED_RUN_MESSAGE);
-        enabledStartButton = true;
     }
 }

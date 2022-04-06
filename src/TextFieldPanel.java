@@ -13,7 +13,7 @@ public class TextFieldPanel extends JPanel {
         this.setAlignmentX(Component.LEFT_ALIGNMENT);
         this.setAlignmentY(Component.LEFT_ALIGNMENT);
         this.textField = new JTextField(defaultValue);
-        this.textField.setMaximumSize(new Dimension(TEXT_FIELD_WIDTH, TEXT_FIELD_HEIGHT));
+        this.textField.setPreferredSize(new Dimension(TEXT_FIELD_WIDTH, TEXT_FIELD_HEIGHT));
         JLabel label = new JLabel(labelText);
         this.add(label);
         this.add(textField);
