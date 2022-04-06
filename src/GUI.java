@@ -9,8 +9,8 @@ import java.nio.file.Path;
 
 public class GUI extends JFrame implements ActionListener {
     private static final String WINDOW_TITLE = "Electric bus scheduling - Simulated Annealing.";
-    private static final int WINDOW_WIDTH = 700;
-    private static final int WINDOW_HEIGHT = 600;
+    private static final int WINDOW_WIDTH = 600;
+    private static final int WINDOW_HEIGHT = 700;
     private static final int ELEMENT_GAP = 10;
     private static final int BUTTON_START_HEIGHT = 30;
     private static final int BUTTON_START_WIDTH = 200;
