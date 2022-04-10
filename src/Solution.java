@@ -185,20 +185,20 @@ public class Solution {
             solutionString.append("\n"+STsGroup);
             vehicleIndex++;
         }
-        int used = 0;
-        int free = 0;
-        for (TreeMap<Integer, ChargingEventVertex> charger:
-                chargersWithChargingEvents) {
-            for (Map.Entry<Integer, ChargingEventVertex> ce:
-                    charger.entrySet()) {
-                if (ce.getValue().isReserved()) {
-                    used++;
-                } else {
-                    free++;
-                }
-            }
-        }
-        solutionString.append("\nused: " + used + " free: " + free).append("\n");
+//        int used = 0;
+//        int free = 0;
+//        for (TreeMap<Integer, ChargingEventVertex> charger:
+//                chargersWithChargingEvents) {
+//            for (Map.Entry<Integer, ChargingEventVertex> ce:
+//                    charger.entrySet()) {
+//                if (ce.getValue().isReserved()) {
+//                    used++;
+//                } else {
+//                    free++;
+//                }
+//            }
+//        }
+//        solutionString.append("\nused: " + used + " free: " + free).append("\n");
 
         return solutionString.toString();
     }

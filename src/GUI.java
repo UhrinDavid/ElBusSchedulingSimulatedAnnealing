@@ -44,6 +44,7 @@ public class GUI extends JFrame implements ActionListener {
     private static final String RESULT_FILE_TYPE = ".txt";
 
     private static final String FINISHED_RUN_MESSAGE = "Run has been sucessfuly finished!";
+    private static final String STARTING_NEW_RUN_MESSAGE = "Starting new run!";
 
     private final JPanel startPanel;
 
@@ -169,6 +170,7 @@ public class GUI extends JFrame implements ActionListener {
 
     @Override
     public void actionPerformed(ActionEvent e) {
+        JOptionPane.showMessageDialog(this, STARTING_NEW_RUN_MESSAGE);
         enabledStartButton = false;
         String fileNameTrips = fCPTrips.getSelectedPath();
         String fileNameChargingEvents = fCPChargingEvents.getSelectedPath();
@@ -202,7 +204,7 @@ public class GUI extends JFrame implements ActionListener {
             );
             JOptionPane.showMessageDialog(this, FINISHED_RUN_MESSAGE);
         } catch (FileNotFoundException exception) {
-            JOptionPane.showMessageDialog(null, exception.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, exception.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         } finally {
             enabledStartButton = true;
         }

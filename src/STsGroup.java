@@ -10,15 +10,11 @@ public class STsGroup {
     private final Random random;
 
     public static void setDepoStart(ServiceTripVertex depoStart) {
-        if (STsGroup.depoStart == null) {
             STsGroup.depoStart = depoStart;
-        }
     }
 
     public static void setDepoEnd(ServiceTripVertex depoEnd) {
-        if (STsGroup.depoEnd == null) {
             STsGroup.depoEnd = depoEnd;
-        }
     }
 
     public static ServiceTripVertex getDepoStart() {
