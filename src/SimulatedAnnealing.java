@@ -81,6 +81,8 @@ public class SimulatedAnnealing {
                         }
                     }
                 }
+                System.out.println("temperature: "+ currentTemperature);
+                System.out.println(solution.getsTsGroups().size());
                 currentTemperature /= 1 + tBeta * currentTemperature;
                 if (isAcceptedSolutionOnTemperature && currentTemperature > MIN_TEMPERATURE) {
                     shouldContinueSA = true;
