@@ -1,7 +1,7 @@
 import java.util.*;
 
 public class STsGroup {
-    private TreeMap<Integer, ServiceTripVertex> assignedServiceTrips;
+    private final TreeMap<Integer, ServiceTripVertex> assignedServiceTrips;
     private TreeMap<Integer, ChargingEventVertex> assignedChargingEvents;
     final static double maxBatteryCapacity = 140;
     final static double minBatteryCapacity = 0;

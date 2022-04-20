@@ -3,7 +3,7 @@ import java.io.FileNotFoundException;
 import java.util.*;
 
 public class Solution {
-    private LinkedList<STsGroup> sTsGroups;
+    private final LinkedList<STsGroup> sTsGroups;
     private final LinkedList<TreeMap<Integer, ChargingEventVertex>> chargersWithChargingEvents;
     private final int tripsNr;
     private final Random random;
@@ -222,7 +222,7 @@ public class Solution {
         }
 
         if (!leftoverTrips.isEmpty()) {
-            LinkedList<STsGroup> vehiclesFromRemoved = randomSTsGroup.splitRemainingTrips(leftoverTrips, nextSolution.chargersWithChargingEvents);
+            LinkedList<STsGroup> vehiclesFromRemoved = STsGroup.splitRemainingTrips(leftoverTrips, nextSolution.chargersWithChargingEvents);
             nextSolution.sTsGroups.addAll(vehiclesFromRemoved);
         }
         return nextSolution;

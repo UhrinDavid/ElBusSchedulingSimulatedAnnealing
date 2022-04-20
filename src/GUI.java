@@ -51,7 +51,7 @@ public class GUI extends JFrame implements ActionListener {
     private final FileChooserPanel fCPTrips;
     private final FileChooserPanel fCPChargingEvents;
     private final FileChooserPanel fCPTripToTripTime;
-    private final FileChooserPanel fCPTripToTripConsumption;;
+    private final FileChooserPanel fCPTripToTripConsumption;
     private final FileChooserPanel fCPTripToChargingEventTime;
     private final FileChooserPanel fCPTripToChargingEventConsumption;
     private final FileChooserPanel fCPChargingEventToTripTime;
