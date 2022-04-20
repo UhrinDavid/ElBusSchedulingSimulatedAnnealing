@@ -5,7 +5,8 @@ import java.io.IOException;
 import java.util.*;
 
 public class SimulatedAnnealing {
-    private static final int REPLICATIONS = 2;
+    private static final int REPLICATIONS = 10;
+    private static final double MIN_TEMPERATURE = 0.001;
 
     private Solution solution;
     private long bestSolutionTime;
@@ -40,7 +41,6 @@ public class SimulatedAnnealing {
 
     public void runSimulatedAnnealing() {
             long startTime = System.currentTimeMillis();
-            // currently 10 min
             long endAfterTime = maxComputingTimeSeconds * 1000 + startTime;
 
             Solution solutionCurrent = solution;
@@ -53,13 +53,7 @@ public class SimulatedAnnealing {
                 isAcceptedSolutionOnTemperature = false;
                 for (int q = 0; q < maxQ; q++) {
                     Solution nextSolution = solutionCurrent.findNext();
-//                    System.out.println("new solution: " + nextSolution.getsTsGroups().size());
-//                    System.out.println("new solution: " + nextSolution);
-                    if (nextSolution == null) {
-                        return;
-                    }
                     if (nextSolution.getsTsGroups().size() <= solutionCurrent.getsTsGroups().size()) {
-//                        System.out.println("accepted better: " + nextSolution.getsTsGroups().size());
                         if (!isAcceptedSolutionOnTemperature) {
                             isAcceptedSolutionOnTemperature = true;
                         }
@@ -78,27 +72,22 @@ public class SimulatedAnnealing {
                         );
                         double generatedValue = random.nextDouble();
                         if (generatedValue <= pAcceptNext) {
-//                            System.out.println("accepted worse: " + nextSolution.getsTsGroups().size());
                             if (!isAcceptedSolutionOnTemperature) {
                                 isAcceptedSolutionOnTemperature = true;
                             }
                             solutionCurrent = nextSolution;
                         } else {
-//                            System.out.println("declined worse: " + nextSolution.getsTsGroups().size());
                             solutionCurrent.resetChargersForSolution();
                         }
                     }
                 }
-                System.out.println("temp: "+ currentTemperature);
-                System.out.println(solution.getsTsGroups().size());
                 currentTemperature /= 1 + tBeta * currentTemperature;
-                if (isAcceptedSolutionOnTemperature && currentTemperature > 0.001) {
+                if (isAcceptedSolutionOnTemperature && currentTemperature > MIN_TEMPERATURE) {
                     shouldContinueSA = true;
                 } else if (isFoundBetterSinceLastReheating && shouldReheat) {
                     currentTemperature = maxT;
                     isFoundBetterSinceLastReheating = false;
                     shouldContinueSA = true;
-//                    System.out.println("reheating");
                 }
             } while (shouldContinueSA && System.currentTimeMillis() < endAfterTime);
         totalTime = System.currentTimeMillis() - startTime;
@@ -115,9 +104,6 @@ public class SimulatedAnnealing {
             }
             i++;
         }
-//        new Thread(() -> {
-//         GUISolution guiSolution = new GUISolution(solution);
-//        }).start();
     }
 
     public Solution getSolution() {
@@ -125,7 +111,6 @@ public class SimulatedAnnealing {
     }
 
     public String toString() {
-//        return "solution length: " + solution.getVehicles().size();
         return  "\nsolution length: " + solution.getsTsGroups().size() + "\n" + "total time seconds: " + (totalTime / 1000.0) +"\n"
                 + "solution reached in time seconds: " + (bestSolutionTime / 1000.0) +"\n" + solution;
     }
@@ -161,7 +146,6 @@ public class SimulatedAnnealing {
                     fileTimeCEToST
             );
             saAlgorithm.runSimulatedAnnealing();
-//            System.out.println(saAlgorithm);
             try {
                 myWriter.write("\n\nReplication nr.: " + (i + 1));
                 myWriter.write(String.valueOf(saAlgorithm));

@@ -203,7 +203,7 @@ public class GUI extends JFrame implements ActionListener {
                     resultFinalPath
             );
             JOptionPane.showMessageDialog(this, FINISHED_RUN_MESSAGE);
-        } catch (FileNotFoundException exception) {
+        } catch (Exception exception) {
             JOptionPane.showMessageDialog(this, exception.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         } finally {
             enabledStartButton = true;

@@ -40,7 +40,6 @@ public class STsGroup {
 
     public String toString() {
         StringBuilder stringFinal = new StringBuilder();
-//        stringFinal.append("---------\n");
         boolean isFirst = true;
         TreeMap<Integer, STGroupVertex> finalGroupSequence = new TreeMap<>(assignedServiceTrips);
         finalGroupSequence.putAll(assignedChargingEvents);
@@ -60,15 +59,12 @@ public class STsGroup {
                         .append(chargingEventVertex.getIndexCharger() + "_" + chargingEventVertex.getIndexChargingEvent());
             }
         }
-//        stringFinal.append("\n---------\n");
         return stringFinal.toString();
     }
 
     public double checkForBatteryDeficiency() {
-        // check if there is enough battery capacity, if not, try to insert charging events
         double deficiencyAll = STsGroup.maxBatteryCapacity;
         ServiceTripVertex tripPrevious = STsGroup.getDepoStart();
-        // create deficiency structure
         for (Map.Entry<Integer, ServiceTripVertex> tripEntry : assignedServiceTrips.entrySet()
         ) {
             ServiceTripVertex trip = tripEntry.getValue();
@@ -92,8 +88,6 @@ public class STsGroup {
             final Edge edgeSTtoST = tripPrevious.getEdgeForSubsequentTrip(trip.getId());
             final double tripConsumption = edgeSTtoST.getBatteryConsumption()
                     + trip.getConsumption();
-            // find suitable CE
-            // get first possible index on charger
             boolean isChargedBeforeTrip = false;
             LinkedList<TreeMap<Integer, ChargingEventVertex>> randomOrderedChargers = new LinkedList<>(chargersWithChargingEvents);
             Collections.shuffle(randomOrderedChargers);
@@ -110,7 +104,7 @@ public class STsGroup {
                             .ceilingEntry(cE == null ? tripPrevious.getEnd() + edgeSTtoCE.getTimeDistance() : cE.getStart() + 1);
                     cE = cEEntry == null ? null : cEEntry.getValue();
                     if (cE != null && cE.getStart() + edgeCEtoST.getTimeDistance() < trip.getStart()
-                            && currentBatteryState - edgeSTtoCE.getBatteryConsumption() > 0 && !cE.isReserved()) {
+                            && currentBatteryState - edgeSTtoCE.getBatteryConsumption() > STsGroup.minBatteryCapacity && !cE.isReserved()) {
                         final int firstInsertableCEKey = cE.getStart();
                         int lastInsertableCEKey;
                         boolean shouldCheckEventOnCharger;
@@ -121,16 +115,10 @@ public class STsGroup {
                         double maxChargeOnChargingSequence = 0.0;
                         do {
                             lastInsertableCEKey = cE.getStart();
-                            // check if there is succeeding event on same charger
-                            // max charge until start of next event on charger, if event on charger is last
-                            // we can charge until start of next trip
                             final double maxChargingTimeOnEvent = cE.getEnd() - cE.getStart();
                             final double actualMaxChargingTimeBetweenSTs = Math.min(maxTimeBetweenSTs, maxChargingTimeOnChargingSequence + maxChargingTimeOnEvent);
                             maxChargeOnChargingSequence += (actualMaxChargingTimeBetweenSTs - maxChargeOnChargingSequence) * cE.getChargingSpeed();
                             maxChargingTimeOnChargingSequence = actualMaxChargingTimeBetweenSTs;
-                            // end charging if:
-                            //      - capacity of ST's battery is at full state
-                            //      - total deficiency reaches zero
                             potentialBatteryState = Math.min(currentBatteryState - consumptionDuringEvent + maxChargeOnChargingSequence, STsGroup.maxBatteryCapacity);
                             final double potentialDeficiency = deficiencyLeft + potentialBatteryState - currentBatteryState + edgeSTtoST.getBatteryConsumption();
                             shouldCheckEventOnCharger = potentialBatteryState < STsGroup.maxBatteryCapacity && potentialDeficiency < 0;
@@ -138,7 +126,6 @@ public class STsGroup {
                             cE = cEEntry == null ? null : cEEntry.getValue();
                         } while (cE != null && shouldCheckEventOnCharger && cE.getStart() + edgeCEtoST.getTimeDistance() < trip.getStart()
                                 && !cE.isReserved());
-                        // check if we charge more than minimum required for next trip / more than is consumed to and from event
                         if (potentialBatteryState - trip.getConsumption() > 0
                                 && potentialBatteryState - trip.getConsumption() > currentBatteryState - tripConsumption) {
                             final double deficiencyModifier = -currentBatteryState + potentialBatteryState + edgeSTtoST.getBatteryConsumption();
@@ -262,10 +249,7 @@ public class STsGroup {
         TreeMap<Integer, ChargingEventVertex> assignedCEsBackup = createAssignedCEsBackup();
         releaseChargingEvents();
         if (tripsToReplace != null) {
-//            System.out.println("size replace: " + tripsToReplace.size());
-//            System.out.println("size before remove: " + assignedServiceTrips.size());
             assignedServiceTrips.entrySet().removeAll(tripsToReplace.entrySet());
-//            System.out.println("size after remove: " + assignedServiceTrips.size());
         }
         assignedServiceTrips.put(tripToInsert.getStart(), tripToInsert);
         double deficiencyAll = checkForBatteryDeficiency();
@@ -321,18 +305,6 @@ public class STsGroup {
         return new TreeMap<>(assignedServiceTrips);
     }
 
-    public boolean validateAreCEsReserved() {
-        for (Map.Entry<Integer, ChargingEventVertex> vertex : assignedChargingEvents.entrySet()
-        ) {
-            ChargingEventVertex item = vertex.getValue();
-            if (!item.isReserved()) {
-                System.out.println("failed validation: unreserved CE");
-                return false;
-            }
-        }
-        return true;
-    }
-
     public double validateGroupBatteryState() {
         STGroupVertex itemPrevious = STsGroup.getDepoStart();
         TreeMap<Integer, STGroupVertex> serviceTripsWithCEsVertices = new TreeMap<>(assignedServiceTrips);
@@ -386,12 +358,5 @@ public class STsGroup {
             return battery;
         }
         return battery;
-    }
-
-    public boolean validateEdgesAndTimeState() {
-        STGroupVertex itemPrevious = STsGroup.getDepoStart();
-        TreeMap<Integer, STGroupVertex> serviceTripsWithCEsVertices = new TreeMap<>(assignedServiceTrips);
-        serviceTripsWithCEsVertices.putAll(assignedChargingEvents);
-        return false;
     }
 }

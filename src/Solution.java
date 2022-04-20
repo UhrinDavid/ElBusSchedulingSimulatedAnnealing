@@ -180,63 +180,20 @@ public class Solution {
 
     public String toString() {
         StringBuilder solutionString = new StringBuilder();
-        int vehicleIndex = 1;
         for ( STsGroup STsGroup : sTsGroups) {
             solutionString.append("\n"+STsGroup);
-            vehicleIndex++;
         }
-//        int used = 0;
-//        int free = 0;
-//        for (TreeMap<Integer, ChargingEventVertex> charger:
-//                chargersWithChargingEvents) {
-//            for (Map.Entry<Integer, ChargingEventVertex> ce:
-//                    charger.entrySet()) {
-//                if (ce.getValue().isReserved()) {
-//                    used++;
-//                } else {
-//                    free++;
-//                }
-//            }
-//        }
-//        solutionString.append("\nused: " + used + " free: " + free).append("\n");
-
         return solutionString.toString();
     }
 
     public Solution findNext() {
-        int tripsBefore = 0;
-        for (STsGroup gr: sTsGroups
-        ) {
-            tripsBefore += gr.getNrTrips();
-        }
-        if (this.sTsGroups.size() == 1) {
-            return null;
-        }
         Solution nextSolution = new Solution(this);
-
-        // randomly choose vehicle from solution
         int randomIndex = random.nextInt(nextSolution.sTsGroups.size());
         STsGroup randomSTsGroup = nextSolution.sTsGroups.remove(randomIndex);
-        // release vehicle's CEs
         randomSTsGroup.releaseChargingEvents();
-//        System.out.println(randomSTsGroup);
         LinkedList<ServiceTripVertex> randomGroupTrips = new LinkedList<>(randomSTsGroup.getServiceTrips().values());
         LinkedList<ServiceTripVertex> leftoverTrips = new LinkedList<>();
 
-        // force insert on 1 random
-//        while (!randomGroupTrips.isEmpty()) {
-//            Collections.shuffle(nextSolution.sTsGroups);
-//            ServiceTripVertex removedTrip = randomGroupTrips.remove(0);
-//            STsGroup randomGroup = nextSolution.sTsGroups.get(random.nextInt(nextSolution.sTsGroups.size()));
-//            LinkedList<ServiceTripVertex> returnedTrips = randomGroup.tryInsertOrReplaceTrip(
-//                    removedTrip, nextSolution.chargersWithChargingEvents, true);
-//            if (returnedTrips != null) {
-//                leftoverTrips.addAll(returnedTrips);
-//            }
-//        }
-
-//        Collections.shuffle(nextSolution.sTsGroups);
-        // force insert on all
         while (!randomGroupTrips.isEmpty()) {
             Collections.shuffle(nextSolution.sTsGroups);
             Iterator<STsGroup> groupsIt = nextSolution.sTsGroups.iterator();
@@ -250,37 +207,23 @@ public class Solution {
                     isInserted = true;
                 } else if (!returnedTrips.isEmpty() && returnedTrips.get(0) != removedTrip) {
                     isInserted = true;
-//                    Collections.shuffle(nextSolution.sTsGroups);
-//                    Iterator<STsGroup> groupIt = nextSolution.sTsGroups.iterator();
-//                    while (!returnedTrips.isEmpty() && groupIt.hasNext()) {
-//                        returnedTrips = groupIt.next().tryInsertTrips(returnedTrips, nextSolution.chargersWithChargingEvents);
-//                    }
                     leftoverTrips.addAll(returnedTrips);
                 } else if (!groupsIt.hasNext()) {
                     leftoverTrips.add(removedTrip);
                 }
             }
         }
-        Collections.shuffle(nextSolution.sTsGroups);
-        Iterator<STsGroup> groupIt = nextSolution.sTsGroups.iterator();
-        while (!leftoverTrips.isEmpty() && groupIt.hasNext()) {
-            leftoverTrips = groupIt.next().tryInsertTrips(leftoverTrips, nextSolution.chargersWithChargingEvents);
+        if (!leftoverTrips.isEmpty()) {
+            Collections.shuffle(nextSolution.sTsGroups);
+            Iterator<STsGroup> groupIt = nextSolution.sTsGroups.iterator();
+            while (!leftoverTrips.isEmpty() && groupIt.hasNext()) {
+                leftoverTrips = groupIt.next().tryInsertTrips(leftoverTrips, nextSolution.chargersWithChargingEvents);
+            }
         }
 
         if (!leftoverTrips.isEmpty()) {
             LinkedList<STsGroup> vehiclesFromRemoved = randomSTsGroup.splitRemainingTrips(leftoverTrips, nextSolution.chargersWithChargingEvents);
             nextSolution.sTsGroups.addAll(vehiclesFromRemoved);
-        }
-
-        int tripsAfter = 0;
-        for (STsGroup gr: nextSolution.sTsGroups
-        ) {
-            tripsAfter += gr.getNrTrips();
-        }
-        if (tripsAfter != tripsBefore) {
-            System.out.println("trips before: " + tripsBefore+" trips after: "+tripsAfter);
-        }if (tripsAfter != nextSolution.tripsNr) {
-            System.out.println("tripsNr: " + nextSolution.tripsNr+" trips after: "+tripsAfter);
         }
         return nextSolution;
     }
